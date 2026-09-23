@@ -59,6 +59,9 @@ Next.js перенаправляет на бэкенд (`https://birge.backend.d
   - `DJANGO_TRUSTED_ORIGINS`, `DJANGO_CORS_ORIGINS` — доп. origin'ы при необходимости
   - `DJANGO_COOKIE_DOMAIN=.deo-core.codes` — чтобы session/csrf-cookie доходили до
     браузера через прокси фронта (`birge.deo-core.codes/admin`, `.../api/...`).
+- Админка на **Jazzmin** (только светлая тема, тёмная отключена): без переключателя тем,
+  без дата-атрибута `data-bs-theme="dark"` и без bootswatch-тёмных стилей. Тема задаётся
+  в `JAZZMIN_SETTINGS` (`"theme": "default"`, `"show_theme_chooser": False`).
 - Админка доступна на `https://birge.deo-core.codes/admin/` (проксируется на бэкенд).
   Логин: суперпользователь, созданный в БД (`python3 backend/manage.py createsuperuser`).
 - Ограничение: `backend/media/` (загрузка изображений) на Vercel не сохраняется —

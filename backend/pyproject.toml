@@ -9,6 +9,7 @@ dependencies = [
     "django-cors-headers>=4.9,<4.10",
     "psycopg[binary]>=3.2",
     "python-dotenv>=1.0",
+    "django-jazzmin>=3.0,<3.1",
 ]
 
 [tool.vercel]

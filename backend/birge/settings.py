@@ -36,6 +36,7 @@ ALLOWED_HOSTS = [
 ]
 
 INSTALLED_APPS = [
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -47,6 +48,40 @@ INSTALLED_APPS = [
     "core",
     "api",
 ]
+
+# Админ-тема Jazzmin — только светлая тема, тёмная отключена.
+JAZZMIN_SETTINGS = {
+    "site_title": "BIRGE — администратор",
+    "site_header": "BIRGE",
+    "site_brand": "BIRGE",
+    "welcome_sign": "Вход в админ-панель BIRGE",
+    "copyright": "BIRGE © ОшТУ",
+    "theme": "default",
+    "default_theme_mode": "light",
+    "show_theme_chooser": False,
+    "show_ui_builder": False,
+    "changeform_format": "horizontal_tabs",
+    "icons": {
+        "core": "fas fa-university",
+        "core.Profile": "fas fa-user-circle",
+        "core.Project": "fas fa-project-diagram",
+        "core.Idea": "fas fa-lightbulb",
+        "core.Club": "fas fa-users",
+        "core.Event": "fas fa-calendar-alt",
+        "core.Announcement": "fas fa-bullhorn",
+        "core.Comment": "fas fa-comment-dots",
+        "core.Vote": "fas fa-vote-yea",
+        "core.Favorite": "fas fa-star",
+        "core.Notification": "fas fa-bell",
+        "core.Achievement": "fas fa-trophy",
+        "core.AdmissionRequest": "fas fa-file-signature",
+        "core.EventReminder": "fas fa-bell",
+        "core.ProjectMembership": "fas fa-user-tag",
+        "auth.User": "fas fa-user",
+        "auth.Group": "fas fa-users-cog",
+    },
+    "order_with_respect_to": ["core", "auth"],
+}
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -84,18 +119,21 @@ WSGI_APPLICATION = "birge.wsgi.application"
 # (Neon/Supabase/база Vercel). Локально — SQLite (если DATABASE_URL не задан).
 if os.environ.get("DATABASE_URL"):
     _db_url = urllib.parse.urlparse(os.environ["DATABASE_URL"])
-    _db_options = dict(part.split("=", 1) for part in _db_url.query.split("&") if "=" in part)
+    _db_options = dict(urllib.parse.parse_qsl(_db_url.query))
+    _db_options.setdefault("connect_timeout", 15)
     if _db_url.hostname and not any(h in _db_url.hostname for h in ("localhost", "127.0.0.1")):
         _db_options.setdefault("sslmode", "require")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": _db_url.path.lstrip("/"),
-            "USER": _db_url.username,
-            "PASSWORD": _db_url.password,
+            "NAME": urllib.parse.unquote(_db_url.path.lstrip("/")),
+            "USER": urllib.parse.unquote(_db_url.username or ""),
+            "PASSWORD": urllib.parse.unquote(_db_url.password or ""),
             "HOST": _db_url.hostname or "",
             "PORT": _db_url.port or "",
             "OPTIONS": _db_options,
+            "CONN_MAX_AGE": 0,
+            "DISABLE_SERVER_SIDE_CURSORS": True,
         }
     }
 else:
