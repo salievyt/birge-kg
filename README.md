@@ -35,11 +35,12 @@ npm run dev
 
 Фронтенд откроется на `http://localhost:3000`, API — на `http://127.0.0.1:8000/api/`.
 
-### Проксирование API
+### Проксирование API и админки
 
-В dev-режиме Next.js перенаправляет `/api/*` на локальный бэкенд (`127.0.0.1:8000`).
-В production (`next build` + `next start`) — на `https://birge.backend.deo-core.codes`.
-Цель можно переопределить переменной окружения `BACKEND_ORIGIN`.
+Next.js перенаправляет на бэкенд (`https://birge.backend.deo-core.codes` по умолчанию):
+`/api/*` → API, `/admin/*` → Django admin, `/static/*` и `/media/*` → статика/файлы.
+Цель переопределяется переменной окружения `BACKEND_ORIGIN` (например,
+`BACKEND_ORIGIN=http://127.0.0.1:8000` для работы фронта с локальным бэкендом).
 
 ## Деплой бэкенда на Vercel
 
@@ -52,10 +53,14 @@ npm run dev
   `collectstatic` Vercel запускает сам (статику раздаёт CDN).
 - Переменные окружения для продакшена:
   - `DATABASE_URL` — обязателен, **Postgres** (Neon/Supabase/база Vercel). Без него миграции
-    применяются к эфемерному SQLite и данные не сохраняются.
+    применяются к эфемерному SQLite, и данные не сохраняются (runtime — read-only FS).
   - `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=0`
   - `DJANGO_ALLOWED_HOSTS=<имя>.vercel.app,...` (домены `birge.*` уже разрешены)
   - `DJANGO_TRUSTED_ORIGINS`, `DJANGO_CORS_ORIGINS` — доп. origin'ы при необходимости
+  - `DJANGO_COOKIE_DOMAIN=.deo-core.codes` — чтобы session/csrf-cookie доходили до
+    браузера через прокси фронта (`birge.deo-core.codes/admin`, `.../api/...`).
+- Админка доступна на `https://birge.deo-core.codes/admin/` (проксируется на бэкенд).
+  Логин: суперпользователь, созданный в БД (`python3 backend/manage.py createsuperuser`).
 - Ограничение: `backend/media/` (загрузка изображений) на Vercel не сохраняется —
   для постоянного хранения подключите `django-storages` (S3/R2).
 
