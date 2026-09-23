@@ -2,7 +2,13 @@ import os
 import urllib.parse
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Локальный .env (DATABASE_URL и т.д.) никогда не попадает в git.
+# На Vercel переменные приходят от платформы, override не трогаем.
+load_dotenv(BASE_DIR / ".env")
 
 
 def _csv(name: str) -> list[str]:
@@ -75,9 +81,12 @@ WSGI_APPLICATION = "birge.wsgi.application"
 
 # Автомиграция на Vercel: в Build Command выполняется `python manage.py migrate --noinput`.
 # Для сохранения данных продакшен должен использовать Postgres через DATABASE_URL
-# (Neon/Supabase/база Vercel). Локально — SQLite.
+# (Neon/Supabase/база Vercel). Локально — SQLite (если DATABASE_URL не задан).
 if os.environ.get("DATABASE_URL"):
     _db_url = urllib.parse.urlparse(os.environ["DATABASE_URL"])
+    _db_options = dict(part.split("=", 1) for part in _db_url.query.split("&") if "=" in part)
+    if _db_url.hostname and not any(h in _db_url.hostname for h in ("localhost", "127.0.0.1")):
+        _db_options.setdefault("sslmode", "require")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -86,6 +95,7 @@ if os.environ.get("DATABASE_URL"):
             "PASSWORD": _db_url.password,
             "HOST": _db_url.hostname or "",
             "PORT": _db_url.port or "",
+            "OPTIONS": _db_options,
         }
     }
 else:
