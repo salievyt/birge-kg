@@ -62,8 +62,10 @@ Next.js перенаправляет на бэкенд (`https://birge.backend.d
 - Админка на **Jazzmin** (только светлая тема, тёмная отключена): без переключателя тем,
   без дата-атрибута `data-bs-theme="dark"` и без bootswatch-тёмных стилей. Тема задаётся
   в `JAZZMIN_SETTINGS` (`"theme": "default"`, `"show_theme_chooser": False`).
-- Админка доступна на `https://birge.deo-core.codes/admin/` (проксируется на бэкенд).
-  Логин: суперпользователь, созданный в БД (`python3 backend/manage.py createsuperuser`).
+- Админка доступна на `https://birge.deo-core.codes/admin/` — фронт перенаправляет
+  (308) на `https://birge.backend.deo-core.codes/admin/`, чтобы session/CSRF-cookies
+  ставились на домен бэкенда. Логин: суперпользователь, созданный в БД
+  (`python3 backend/manage.py createsuperuser`).
 - Ограничение: `backend/media/` (загрузка изображений) на Vercel не сохраняется —
   для постоянного хранения подключите `django-storages` (S3/R2).
 
