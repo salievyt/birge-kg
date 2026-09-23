@@ -1,13 +1,17 @@
 /** @type {import('next').NextConfig} */
-const isProduction = process.env.NODE_ENV === "production";
-const backendOrigin =
-  process.env.BACKEND_ORIGIN ?? (isProduction ? "https://birge.backend.deo-core.codes" : "http://127.0.0.1:8000");
+const backendOrigin = process.env.BACKEND_ORIGIN ?? "https://birge.backend.deo-core.codes";
 
 const nextConfig = {
   reactStrictMode: true,
   skipTrailingSlashRedirect: true,
   async rewrites() {
-    return [{ source: "/api/:path*", destination: `${backendOrigin}/api/:path*/` }];
+    const upstream = [
+      { source: "/api/:path*", destination: `${backendOrigin}/api/:path*/` },
+      { source: "/admin/:path*", destination: `${backendOrigin}/admin/:path*/` },
+      { source: "/static/:path*", destination: `${backendOrigin}/static/:path*/` },
+      { source: "/media/:path*", destination: `${backendOrigin}/media/:path*/` },
+    ];
+    return upstream;
   }
 };
 

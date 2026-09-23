@@ -132,3 +132,14 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 CSRF_TRUSTED_ORIGINS = [*FRONTEND_ORIGINS, *_csv("DJANGO_TRUSTED_ORIGINS")]
+
+# Фронтенд ходит на бэкенд через server-side прокси своего домена (birge.deo-core.codes).
+# Чтобы session/csrf-cookie из ответов бэкенда доходили до браузера по домену фронтенда,
+# выставляем общий cookie-домен родителя *.deo-core.codes (только в проде, via env).
+_cookie_domain = os.environ.get("DJANGO_COOKIE_DOMAIN", "").strip() or None
+SESSION_COOKIE_DOMAIN = _cookie_domain
+CSRF_COOKIE_DOMAIN = _cookie_domain
+SESSION_COOKIE_SECURE = bool(_cookie_domain)
+CSRF_COOKIE_SECURE = bool(_cookie_domain)
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
