@@ -210,47 +210,7 @@ export function ErrorPage({ code, onRetry }: { code: "404" | "500"; onRetry?: ()
 
   return (
     <section className={`errorScreen${is404 ? " is404" : " is500"}`}>
-      {/* Декоративный фон */}
-      <div className="errorBackdrop" aria-hidden="true">
-        <span className="errorBlob blobA" />
-        <span className="errorBlob blobB" />
-        <div className="errorConstellation" />
-      </div>
-
-      {/* Конфетти */}
-      {confetti.length > 0 && (
-        <div className="confettiLayer" aria-hidden="true">
-          {confetti.map(piece => (
-            <span
-              key={piece.id}
-              className="confettiPiece"
-              style={{
-                left: `${piece.left}%`,
-                width: piece.size,
-                height: piece.size * 0.6,
-                background: piece.color,
-                animationDelay: `${piece.delay}s`,
-                animationDuration: `${piece.duration}s`,
-                "--drift": `${piece.drift}px`,
-              } as React.CSSProperties}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Секретное достижение */}
-      {achievement && (
-        <output className="achievementPopup" role="status">
-          <PartyPopper size={18} />
-          <span>
-            <strong>Достижение получено!</strong>
-            {achievement}
-          </span>
-          <button type="button" className="achievementClose" aria-label="Закрыть" onClick={() => setAchievement(null)}>
-            ×
-          </button>
-        </output>
-      )}
+    
 
       <div className="errorCard">
         <div className="errorDigits" aria-hidden="true">
@@ -267,7 +227,7 @@ export function ErrorPage({ code, onRetry }: { code: "404" | "500"; onRetry?: ()
 
         {is404 && (
           <>
-            {/* Убежавший «двойник» нуля — мини-игра */}
+            {/* Убежавший «двойник» нуля — мини-игра
             <button
               type="button"
               className="errorZero gameTarget"
@@ -284,11 +244,11 @@ export function ErrorPage({ code, onRetry }: { code: "404" | "500"; onRetry?: ()
               <Gamepad2 size={14} />
               <span>Поймай ноль-двойник: {catches}</span>
               {catches >= 5 && <Sparkles size={14} />}
-            </div>
+            </div> */}
           </>
         )}
 
-        <span className="errorEyebrow">
+        {/* <span className="errorEyebrow">
           {is404 ? <Compass size={14} /> : <HardHat size={14} />}
           {subtitle}
         </span>
@@ -297,9 +257,9 @@ export function ErrorPage({ code, onRetry }: { code: "404" | "500"; onRetry?: ()
           {is404
             ? "Такого раздела в BIRGE нет — возможно, его ещё не создали или ссылка устарела."
             : "Мы уже разбираемся. Попробуйте повторить действие через минуту."}
-        </p>
+        </p> */}
 
-        {is404 ? (
+        {/* {is404 ? (
           <div className="errorFinder">
             <label className="errorFinderLabel" htmlFor="error-finder">
               <Search size={15} />
@@ -334,7 +294,7 @@ export function ErrorPage({ code, onRetry }: { code: "404" | "500"; onRetry?: ()
               <code key={index}>{lines[index] ?? ""}{"\n"}</code>
             ))}
           </pre>
-        )}
+        )} */}
 
         <div className="errorActions">
           <button type="button" className="errorButton primary" onClick={goHome}>
@@ -354,14 +314,14 @@ export function ErrorPage({ code, onRetry }: { code: "404" | "500"; onRetry?: ()
           </a>
         </div>
 
-        <div className="errorTools">
+        {/* <div className="errorTools">
           <Wrench size={13} />
           <span>
             {is404
               ? "Совет: проверьте адрес или воспользуйтесь меню выше"
               : "Совет: если ошибка повторяется — напишите нам в «Помощи»"}
           </span>
-        </div>
+        </div> */}
       </div>
     </section>
   );
