@@ -29,6 +29,7 @@ import { CabinetScreen } from "./CabinetScreen";
 import { CalendarScreen } from "./CalendarScreen";
 import { CatalogScreen } from "./CatalogScreen";
 import { DetailScreen } from "./DetailScreen";
+import { ErrorPage } from "./ErrorPage";
 import { EventScreen } from "./EventScreen";
 import { FavoritesScreen } from "./FavoritesScreen";
 import { FacultyScreen } from "./FacultyScreen";
@@ -297,10 +298,7 @@ export function AppShell() {
             <SettingsScreen profile={account?.profile} isAuthenticated={Boolean(account)} canModerate={canModerate} onExport={exportData} onLogout={logout} />
           )}
           {!knownScreens.includes(screen) && (
-            <section className="screen">
-              <h1>Раздел не найден</h1>
-              <a href="#overview">Вернуться в обзор</a>
-            </section>
+            <ErrorPage code="404" />
           )}
         </>
       ) : null}

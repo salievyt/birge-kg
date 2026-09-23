@@ -72,12 +72,12 @@ export const sessionApi = {
     return request("/api/auth/session/", { signal });
   },
 
-  login(input: AuthenticationInput): Promise<AuthResponse> {
-    return request("/api/auth/login/", { method: "POST", body: input });
+  login(input: AuthenticationInput, csrf: string): Promise<AuthResponse> {
+    return request("/api/auth/login/", { method: "POST", csrf, body: input });
   },
 
-  register(input: AuthenticationInput): Promise<AuthResponse> {
-    return request("/api/auth/register/", { method: "POST", body: input });
+  register(input: AuthenticationInput, csrf: string): Promise<AuthResponse> {
+    return request("/api/auth/register/", { method: "POST", csrf, body: input });
   },
 
   logout(csrf: string): Promise<CsrfDto> {

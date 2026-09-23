@@ -523,3 +523,271 @@ p { line-height: 1.5; }
   .calendarGrid { gap: 4px; }
   .calendarCell { min-height: 64px; padding: 5px; }
 }
+
+/* === Креативные страницы ошибок (404 / 500) === */
+.errorScreen {
+  position: relative;
+  min-height: calc(100svh - 190px);
+  display: grid;
+  place-items: center;
+  padding: 56px 24px 72px;
+  overflow: hidden;
+}
+.errorBackdrop { position: absolute; inset: 0; pointer-events: none; }
+.errorBlob {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+  animation: errorDrift 14s ease-in-out infinite alternate;
+}
+.errorBlob.blobA { top: -160px; left: -120px; background: color-mix(in srgb, var(--teal) 55%, transparent); }
+.errorBlob.blobB { bottom: -180px; right: -140px; background: color-mix(in srgb, var(--amber) 45%, transparent); animation-delay: -7s; }
+@keyframes errorDrift {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(60px, 40px) scale(1.15); }
+}
+.errorConstellation {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 12% 22%, var(--muted) 50%, transparent 51%),
+    radial-gradient(2px 2px at 28% 68%, var(--muted) 50%, transparent 51%),
+    radial-gradient(2px 2px at 44% 14%, var(--muted) 50%, transparent 51%),
+    radial-gradient(2px 2px at 62% 78%, var(--muted) 50%, transparent 51%),
+    radial-gradient(2px 2px at 78% 30%, var(--muted) 50%, transparent 51%),
+    radial-gradient(2px 2px at 90% 60%, var(--muted) 50%, transparent 51%),
+    radial-gradient(2px 2px at 8% 86%, var(--muted) 50%, transparent 51%);
+  opacity: 0.35;
+  animation: errorTwinkle 3s ease-in-out infinite alternate;
+}
+.errorConstellation i { display: none; }
+@keyframes errorTwinkle { from { opacity: 0.2; } to { opacity: 0.5; } }
+
+.errorCard {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  max-width: 640px;
+  padding: 40px 36px;
+  text-align: center;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12);
+}
+.errorDigits {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(88px, 16vw, 150px);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  user-select: none;
+}
+.errorZero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.06em;
+  height: 1.06em;
+}
+.errorZero img { width: 100%; height: 100%; object-fit: contain; animation: errorSpin 9s linear infinite; }
+@keyframes errorSpin { to { transform: rotate(360deg); } }
+.errorDigits .isGlitch { animation: errorGlitch 0.35s steps(2, jump-none) 3; }
+@keyframes errorGlitch {
+  0% { transform: translate(0); opacity: 1; }
+  25% { transform: translate(-4px, 2px); opacity: 0.7; color: var(--teal); }
+  50% { transform: translate(3px, -2px); opacity: 1; color: var(--amber); }
+  75% { transform: translate(-2px, -2px); opacity: 0.85; }
+  100% { transform: translate(0); opacity: 1; }
+}
+.errorEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.errorTitle { font-size: clamp(24px, 5vw, 34px); margin: 0; }
+.errorText { color: var(--muted); margin: 0; max-width: 480px; }
+
+/* 404: поиск-подсказки */
+.errorFinder { display: grid; gap: 10px; width: 100%; max-width: 440px; margin-top: 4px; }
+.errorFinderLabel { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 13px; }
+.errorFinderInput {
+  font: inherit;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  width: 100%;
+}
+.errorFinderInput:focus { border-color: var(--teal); outline: none; }
+.errorFinderHints { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.errorHintChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+.errorHintChip:hover { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 10%, transparent); transform: translateY(-2px); }
+.errorFinderEmpty { display: inline-flex; align-items: center; gap: 7px; color: var(--amber); font-size: 13px; }
+
+/* 500: терминал */
+.errorTerminal {
+  width: 100%;
+  max-width: 440px;
+  min-height: 118px;
+  margin: 4px 0 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ink) 92%, var(--card));
+  color: color-mix(in srgb, var(--bg) 85%, var(--ink));
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  text-align: left;
+  overflow: auto;
+}
+.errorTerminal code { display: block; white-space: pre-wrap; }
+
+/* Кнопки и футер-подсказка */
+.errorActions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+.errorButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  padding: 11px 18px;
+  min-height: 44px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+.errorButton:hover { border-color: var(--teal); transform: translateY(-2px); }
+.errorButton.primary { background: var(--teal); border-color: var(--teal); color: #fff; }
+.errorButton.ghost { text-decoration: none; color: var(--teal); }
+.errorTools { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+@media (max-width: 700px) {
+  .errorScreen { padding: 40px 16px 56px; }
+  .errorCard { padding: 28px 18px; border-radius: 16px; }
+  .errorActions { flex-direction: column; width: 100%; }
+  .errorActions .errorButton { justify-content: center; }
+}
+
+/* === Пасхалки на страницах ошибок === */
+/* Ноль-двойник: убегает по экрану при клике, пингует */
+.errorZero.gameTarget {
+  position: absolute;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  z-index: 4;
+  filter: drop-shadow(0 6px 14px color-mix(in srgb, var(--teal) 45%, transparent));
+  animation: zeroFloat 3.4s ease-in-out infinite;
+  transition: left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.errorZero.gameTarget img { width: 100%; height: 100%; object-fit: contain; }
+.errorZero.gameTarget:hover { transform: scale(1.08); }
+.errorZero.gameTarget:active { transform: scale(0.9); }
+@keyframes zeroFloat { 0%, 100% { rotate: -4deg; } 50% { rotate: 4deg; } }
+.zeroPing {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--teal);
+  animation: zeroPing 1.4s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes zeroPing { 0% { transform: scale(0.9); opacity: 0.7; } 100% { transform: scale(1.35); opacity: 0; } }
+.errorGameBar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--teal) 10%, var(--card));
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 600;
+}
+.errorGameBar svg { color: var(--amber); }
+
+/* Конфетти */
+.confettiLayer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 5; }
+.confettiPiece {
+  position: absolute;
+  top: -12px;
+  border-radius: 2px;
+  animation: confettiFall linear both;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg) rotateY(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) translateX(var(--drift, 0)) rotate(720deg) rotateY(1080deg); opacity: 0.9; }
+}
+
+/* Попап достижения */
+.achievementPopup {
+  position: fixed;
+  top: 90px;
+  right: 20px;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(380px, calc(100vw - 40px));
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--amber);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  color: var(--ink);
+  font-size: 14px;
+  animation: toastIn 0.3s ease;
+}
+.achievementPopup svg { color: var(--amber); flex: none; }
+.achievementPopup span { flex: 1; display: grid; gap: 2px; }
+.achievementPopup strong { font-size: 13px; color: var(--amber); }
+.achievementClose {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+@media (max-width: 700px) {
+  .achievementPopup { top: auto; bottom: 20px; right: 12px; }
+  .errorZero.gameTarget { width: 56px; height: 56px; }
+}

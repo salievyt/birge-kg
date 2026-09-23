@@ -312,7 +312,7 @@ export function useAppController(): AppController {
     async (input: AuthenticationInput) => {
       setBusy(true);
       try {
-        const result = await sessionApi.login(input);
+        const result = await sessionApi.login(input, csrf);
         setAccount(result.account);
         setCsrf(result.csrf);
         window.location.hash = "profile";
@@ -323,14 +323,14 @@ export function useAppController(): AppController {
         setBusy(false);
       }
     },
-    [notify],
+    [csrf, notify],
   );
 
   const register = useCallback(
     async (input: AuthenticationInput) => {
       setBusy(true);
       try {
-        const result = await sessionApi.register(input);
+        const result = await sessionApi.register(input, csrf);
         setAccount(result.account);
         setCsrf(result.csrf);
         window.location.hash = "profile";
@@ -341,7 +341,7 @@ export function useAppController(): AppController {
         setBusy(false);
       }
     },
-    [notify],
+    [csrf, notify],
   );
 
   const saveProfile = useCallback(
