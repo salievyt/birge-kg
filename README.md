@@ -41,6 +41,24 @@ npm run dev
 В production (`next build` + `next start`) — на `https://birge.backend.deo-core.codes`.
 Цель можно переопределить переменной окружения `BACKEND_ORIGIN`.
 
+## Деплой бэкенда на Vercel
+
+Бэкенд подготовлен к нулевой настройке (Vercel определяет Django по `manage.py`):
+
+- Vercel-проект: **Root Directory = `backend`**, всё из `backend/pyproject.toml`
+  (`[tool.vercel] entrypoint = "birge.wsgi:application"`, Python 3.12 через `.python-version`).
+- **Автомиграция**: каждый деплой выполняет `python manage.py migrate --noinput`
+  по Build Command `[tool.vercel.scripts] build` (после установки зависимостей, до деплоя).
+  `collectstatic` Vercel запускает сам (статику раздаёт CDN).
+- Переменные окружения для продакшена:
+  - `DATABASE_URL` — обязателен, **Postgres** (Neon/Supabase/база Vercel). Без него миграции
+    применяются к эфемерному SQLite и данные не сохраняются.
+  - `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=0`
+  - `DJANGO_ALLOWED_HOSTS=<имя>.vercel.app,...` (домены `birge.*` уже разрешены)
+  - `DJANGO_TRUSTED_ORIGINS`, `DJANGO_CORS_ORIGINS` — доп. origin'ы при необходимости
+- Ограничение: `backend/media/` (загрузка изображений) на Vercel не сохраняется —
+  для постоянного хранения подключите `django-storages` (S3/R2).
+
 ## Реализовано
 
 ### Общие

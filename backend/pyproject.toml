@@ -1,0 +1,19 @@
+[project]
+name = "birge-backend"
+version = "0.1.0"
+description = "BIRGE — платформа ОшТУ: Django REST API"
+requires-python = ">=3.12"
+dependencies = [
+    "Django>=5.2,<5.3",
+    "djangorestframework>=3.17,<3.18",
+    "django-cors-headers>=4.9,<4.10",
+    "psycopg[binary]>=3.2",
+]
+
+[tool.vercel]
+entrypoint = "birge.wsgi:application"
+
+# Build Command выполняется после установки зависимостей и до деплоя —
+# это и есть автомиграция на каждый деплой. collectstatic Vercel запускает сам.
+[tool.vercel.scripts]
+build = "python manage.py migrate --noinput"
