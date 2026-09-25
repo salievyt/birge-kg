@@ -17,6 +17,8 @@ from core.models import (
     Idea,
     Project,
     ProjectMembership,
+    ProjectMessage,
+    ProjectChatRead,
     Profile,
 )
 
@@ -268,13 +270,20 @@ class ItemService:
             "members": self._members(resource, item),
             "comments": self.comment_repo.for_resource(resource, resource_id),
             "is_member": self._is_member(resource, item, user),
+            "chat_unread": self._chat_unread(item, user) if resource == "project" and self._is_member(resource, item, user) else 0,
             "is_owner": self._is_owner(resource, item, user),
+            "is_pending": resource == "project" and user.is_authenticated and ProjectMembership.objects.filter(project=item, user=user, accepted=False).exists(),
+            "applications": ProjectMembership.objects.filter(project=item, accepted=False).select_related("user") if resource == "project" and self._is_owner(resource, item, user) else [],
             "is_favorited": FavoriteRepository.is_favorited(user, resource, resource_id) if user.is_authenticated else False,
         }
 
+    def _chat_unread(self, project, user):
+        read_id = ProjectChatRead.objects.filter(project=project, user=user).values_list("last_read_id", flat=True).first() or 0
+        return ProjectMessage.objects.filter(project=project, pk__gt=read_id).exclude(sender=user).count()
+
     def _members(self, resource: str, item):
         if resource == "project" and isinstance(item, Project):
-            return self.project_repo.memberships(item)
+            return [{"user": item.owner, "role": "руководитель", "accepted": True}, *[m for m in self.project_repo.memberships(item) if m.user_id != item.owner_id]]
         if resource == "club" and isinstance(item, Club):
             return [{"user": item.lead, "role": "руководитель", "accepted": True}, *[
                 {"user": member, "role": "участник", "accepted": True}
@@ -286,7 +295,7 @@ class ItemService:
         if not user.is_authenticated:
             return False
         if resource == "project" and isinstance(item, Project):
-            return ProjectMembership.objects.filter(project=item, user=user).exists()
+            return item.owner_id == user.id or ProjectMembership.objects.filter(project=item, user=user, accepted=True).exists()
         if resource == "club" and isinstance(item, Club):
             return item.lead_id == user.id or item.members.filter(id=user.id).exists()
         if resource == "idea" and isinstance(item, Idea):
@@ -310,14 +319,7 @@ class ItemService:
             raise ValidationError("Запись не найдена.")
         owner = None
         if resource == "project" and isinstance(item, Project):
-            if ProjectMembership.objects.filter(project=item, user=user).exists():
-                raise ValidationError("Вы уже участвуете в этом проекте.")
-            ProjectMembership.objects.create(
-                project=item, user=user, role="участник", accepted=item.status != "recruiting"
-            )
-            if item.status != "recruiting":
-                item.members.add(user)
-            owner = item.owner
+            return MatchingService().apply(item.id, user, "участник")
         elif resource == "club" and isinstance(item, Club):
             item.members.add(user)
             owner = item.lead
@@ -332,8 +334,9 @@ class ItemService:
             )
         return item
 
+    @transaction.atomic
     def leave(self, resource: str, resource_id: int, user):
-        item = self._resolve(resource, resource_id)
+        item = Project.objects.select_for_update().filter(pk=resource_id).first() if resource == "project" else self._resolve(resource, resource_id)
         if item is None:
             raise ValidationError("Запись не найдена.")
         if resource == "project" and isinstance(item, Project):
@@ -504,9 +507,19 @@ class MatchingService:
         }
 
     def apply(self, project_id: int, user, role: str):
-        project = self.project_repo.by_id(project_id)
+        return self._apply(project_id, user, role)
+
+    @transaction.atomic
+    def _apply(self, project_id: int, user, role: str):
+        project = Project.objects.select_for_update().filter(pk=project_id).first()
         if project is None:
             raise ValidationError("Проект не найден.")
+        if project.owner_id == user.id:
+            raise ValidationError("Вы руководитель этого проекта.")
+        if project.status != "recruiting":
+            raise ValidationError("Набор в этот проект закрыт.")
+        if len(role.strip()) > 80:
+            raise ValidationError("Название роли не должно превышать 80 символов.")
         if ProjectMembership.objects.filter(project=project, user=user).exists():
             raise ValidationError("Вы уже подали заявку в этот проект.")
         ProjectMembership.objects.create(
@@ -519,6 +532,21 @@ class MatchingService:
             "application",
         )
         return project
+
+    @transaction.atomic
+    def decide(self, project_id: int, member_id: int, action: str, user):
+        project = Project.objects.select_for_update().filter(pk=project_id, owner=user).first()
+        if project is None:
+            raise ValidationError("Заявки может рассматривать только руководитель проекта.")
+        membership = ProjectMembership.objects.filter(project=project, user_id=member_id, accepted=False).first()
+        if membership is None or action not in ("approve", "reject"):
+            raise ValidationError("Заявка не найдена или уже рассмотрена.")
+        if action == "approve":
+            membership.accepted = True
+            membership.save(update_fields=["accepted"])
+        else:
+            membership.delete()
+        self.notification_repo.create(membership.user, "Заявка рассмотрена", f"{project.title}: " + ("вы приняты в команду." if action == "approve" else "заявка отклонена."), "application")
 
 
 class FeedService:

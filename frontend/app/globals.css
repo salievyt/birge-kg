@@ -777,6 +777,7 @@ p { line-height: 1.5; }
 .achievementPopup svg { color: var(--amber); flex: none; }
 .achievementPopup span { flex: 1; display: grid; gap: 2px; }
 .achievementPopup strong { font-size: 13px; color: var(--amber); }
+.createForm { max-width: 640px; margin: 24px 0 40px; }
 .achievementClose {
   border: 0;
   background: transparent;

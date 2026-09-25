@@ -56,6 +56,26 @@ class ProjectMembership(TimeStampedModel):
     accepted = models.BooleanField(default=False)
 
 
+class ProjectMessage(TimeStampedModel):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="messages")
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField(max_length=4000)
+    client_id = models.UUIDField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["project", "sender", "client_id"], name="unique_project_message_request")]
+        indexes = [models.Index(fields=["project", "id"]), models.Index(fields=["project", "sender", "created_at"])]
+
+
+class ProjectChatRead(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    last_read_id = models.PositiveBigIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["project", "user"], name="unique_project_chat_reader")]
+
+
 class Idea(TimeStampedModel):
     STATUS_CHOICES = [
         ("review", "На рассмотрении"),

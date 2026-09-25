@@ -8,6 +8,8 @@ import type {
   CabinetDto,
   CalendarDto,
   CommentDto,
+  ChatPageDto,
+  ProjectMessageDto,
   DashboardDto,
   DetailBundle,
   FacultyDto,
@@ -129,6 +131,19 @@ export const catalogApi = {
 };
 
 export const appApi = {
+  chat(projectId: number, cursor: {before?: number; after?: number}, signal?: AbortSignal): Promise<ChatPageDto> {
+    const query = new URLSearchParams(Object.entries(cursor).map(([key, value]) => [key, String(value)]));
+    return request(`/api/projects/${projectId}/messages/?${query}`, {signal});
+  },
+  sendMessage(projectId: number, csrf: string, text: string, clientId: string): Promise<ProjectMessageDto> {
+    return request(`/api/projects/${projectId}/messages/`, {method: "POST", csrf, body: {text, client_id: clientId}});
+  },
+  readChat(projectId: number, csrf: string, lastReadId: number, signal?: AbortSignal): Promise<{ok: boolean}> {
+    return request(`/api/projects/${projectId}/messages/read/`, {method: "POST", csrf, body: {last_read_id: lastReadId}, signal});
+  },
+  reviewApplication(projectId: number, userId: number, action: "approve" | "reject", csrf: string): Promise<{ ok: boolean }> {
+    return request(`/api/projects/${projectId}/applications/decide/`, { method: "POST", csrf, body: { user_id: userId, action } });
+  },
   cabinet(signal?: AbortSignal): Promise<CabinetDto> {
     return request("/api/cabinet/", { signal });
   },

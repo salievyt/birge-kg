@@ -33,7 +33,21 @@ export interface UserDto {
   last_name?: string;
 }
 
+export interface ProjectMessageDto {
   id: number;
+  sender: UserDto;
+  text: string;
+  created_at: string;
+  client_id: string;
+}
+
+export interface ChatPageDto {
+  results: ProjectMessageDto[];
+  unread: number;
+  next_before: number | null;
+  next_after: number | null;
+}
+
 export interface ProfileDto {
   id: number;
   email?: string;
@@ -185,6 +199,9 @@ export interface MembershipDto {
 }
 
 export interface DetailBundle {
+  chat_unread?: number;
+  is_pending?: boolean;
+  applications?: MembershipDto[];
   item: ItemDto;
   members?: MembershipDto[];
   comments?: CommentDto[];

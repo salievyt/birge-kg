@@ -82,6 +82,18 @@ class ContentTests(AuthTestCase):
         self.assertFalse(club.is_moderated)
         self.assertEqual(Client().get(url).status_code, 404)
 
+    def test_owner_edits_project_status_but_not_ownership(self):
+        project = Project.objects.create(owner=self.user, title='Editable', direction='IT')
+        url = f'/api/projects/{project.id}/'
+        edited = self.client.patch(url, {'status': 'active', 'progress': 40, 'owner': 999}, content_type='application/json', HTTP_X_CSRFTOKEN=self.csrf)
+        self.assertEqual(edited.status_code, 200)
+        project.refresh_from_db()
+        self.assertEqual(project.status, 'active')
+        self.assertEqual(project.progress, 40)
+        self.assertEqual(project.owner_id, self.user.id)
+        invalid = self.client.patch(url, {'progress': 101}, content_type='application/json', HTTP_X_CSRFTOKEN=self.csrf)
+        self.assertEqual(invalid.status_code, 400)
+
     def test_official_reply_requires_moderator_and_notifies_author(self):
         from core.models import Notification
         from django.contrib.auth.models import Group
@@ -112,6 +124,22 @@ class ContentTests(AuthTestCase):
         for name in ['fake.png', 'script.svg']:
             response = self.client.post('/api/upload/', {'file': SimpleUploadedFile(name, b'not an image')}, HTTP_X_CSRFTOKEN=self.csrf)
             self.assertEqual(response.status_code, 400)
+
+    def test_only_owner_can_approve_pending_application(self):
+        from core.models import ProjectMembership
+        owner = User.objects.create_user('project-leader')
+        project = Project.objects.create(owner=owner, title='Recruiting', direction='IT')
+        self.assertEqual(self.post(f'/api/projects/{project.id}/join/', {}).status_code, 200)
+        membership = ProjectMembership.objects.get(project=project, user=self.user)
+        self.assertFalse(membership.accepted)
+        url = f'/api/projects/{project.id}/applications/decide/'
+        payload = {'user_id': self.user.id, 'action': 'approve'}
+        self.assertEqual(self.post(url, payload).status_code, 400)
+        self.client.force_login(owner)
+        self.assertEqual(self.post(url, payload).status_code, 200)
+        membership.refresh_from_db()
+        self.assertTrue(membership.accepted)
+        self.assertEqual(self.post(url, payload).status_code, 400)
 
     def test_event_registration_rejects_past_and_full_events(self):
         owner = User.objects.create_user('event-leader')

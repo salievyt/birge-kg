@@ -73,6 +73,7 @@ export function AppShell() {
     openFaculty,
     setCalendarMonth,
     joinEntity,
+    reviewApplication,
     leaveEntity,
     sendComment,
     voteIdea,
@@ -264,9 +265,11 @@ export function AppShell() {
           )}
           {screen === "detail" && (
             <DetailScreen
+              userId={account?.profile.user.id}
               csrf={csrf}
               onSave={updateEntity}
               busy={busy}
+              onReview={(userId, action) => reviewApplication(Number(params.id), userId, action)}
               kind={detailKind}
               bundle={views.detail as DetailBundle | undefined}
               loading={loading}

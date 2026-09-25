@@ -106,6 +106,15 @@ class ProjectViewSet(OwnedContentViewSet):
     search_fields = ["title", "description", "direction", "needed_roles"]
     ordering_fields = ["created_at", "progress"]
 
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated], url_path="applications/decide")
+    def decide_application(self, request, pk=None):
+        try:
+            data = _read_json(request)
+            MatchingService().decide(pk, int(data.get("user_id", 0)), str(data.get("action", "")), request.user)
+        except (ValidationError, ValueError, TypeError) as error:
+            return Response(_ITEM_ERROR(error), status=400)
+        return Response({"ok": True})
+
     def get_queryset(self):
         return ProjectRepository.newest()
 
@@ -306,7 +315,10 @@ def _respond_detail(request, resource: str, resource_id):
             "members": MembershipSerializer(payload["members"], many=True).data,
             "comments": CommentSerializer(payload["comments"], many=True).data,
             "is_member": payload["is_member"],
+            "chat_unread": payload["chat_unread"],
             "is_owner": payload["is_owner"],
+            "is_pending": payload["is_pending"],
+            "applications": MembershipSerializer(payload["applications"], many=True).data,
             "is_favorited": payload["is_favorited"],
         }
     )

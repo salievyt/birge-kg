@@ -54,6 +54,7 @@ export interface AppController {
   openFaculty(name: string): void;
   setCalendarMonth(year: number, month: number): void;
   joinEntity(kind: "project" | "club", id: number): Promise<void>;
+  reviewApplication(projectId: number, userId: number, action: "approve" | "reject"): Promise<void>;
   leaveEntity(kind: "project" | "club", id: number): Promise<void>;
   sendComment(kind: ResourceKind, id: number, text: string): Promise<boolean>;
   voteIdea(id: number): Promise<void>;
@@ -413,7 +414,7 @@ export function useAppController(): AppController {
     (kind: "project" | "club", id: number) =>
       run("Не удалось присоединиться.", async () => {
         await appApi.join(kind, id, csrf);
-        notify("success", "Вы в команде!");
+        notify("success", kind === "project" ? "Заявка отправлена руководителю." : "Вы вступили в клуб.");
         resetReload();
       }),
     [csrf, notify, resetReload],
@@ -427,6 +428,14 @@ export function useAppController(): AppController {
         resetReload();
       }),
     [csrf, notify, resetReload],
+  );
+
+  const reviewApplication = useCallback(
+    (projectId: number, userId: number, action: "approve" | "reject") => run("Не удалось рассмотреть заявку.", async () => {
+      await appApi.reviewApplication(projectId, userId, action, csrf);
+      notify("success", action === "approve" ? "Участник принят в команду." : "Заявка отклонена.");
+      resetReload();
+    }), [csrf, notify, resetReload],
   );
 
   const sendComment = useCallback(
@@ -638,6 +647,7 @@ export function useAppController(): AppController {
     openFaculty,
     setCalendarMonth,
     joinEntity,
+    reviewApplication,
     leaveEntity,
     sendComment,
     voteIdea,

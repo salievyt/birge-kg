@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from . import auth
 from . import passwords
 from . import jobs
+from . import chat
 from .views import (
     achievements,
     admissions,
@@ -39,6 +40,8 @@ router.register("notifications", NotificationViewSet, basename="notification")
 router.register("announcements", AnnouncementViewSet, basename="announcement")
 
 urlpatterns = [
+    path("projects/<int:project_id>/messages/", chat.messages),
+    path("projects/<int:project_id>/messages/read/", chat.mark_read),
     path("jobs/event-reminders/", jobs.event_reminders),
     path("auth/password-reset/", passwords.reset_request),
     path("auth/password-reset-confirm/", passwords.reset_confirm),
