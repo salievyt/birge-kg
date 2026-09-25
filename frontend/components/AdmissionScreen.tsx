@@ -18,6 +18,7 @@ export function AdmissionScreen({ busy, canModerate, moderated, onDecide, onSubm
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     const data = Object.fromEntries(new FormData(event.currentTarget));
     void onSubmit({
       full_name: String(data.full_name ?? ""),
@@ -27,7 +28,7 @@ export function AdmissionScreen({ busy, canModerate, moderated, onDecide, onSubm
     }).then(ok => {
       if (ok) {
         setSent(true);
-        event.currentTarget.reset();
+        form.reset();
       }
     });
   }

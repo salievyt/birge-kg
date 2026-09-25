@@ -43,7 +43,7 @@ export function ItemCards({ items, kind, favorited, onOpen, onFavorite }: ItemCa
                 itemTitle(item)
               )}
             </h3>
-            <p>{item.description || item.body || item.location || item.motivation}</p>
+            <p className="cardExcerpt">{item.description || item.body || item.location || item.motivation}</p>
             {item.skills && (
               <div className="tags">{item.skills.map(skill => <span className="tag" key={skill}>{skill}</span>)}</div>
             )}

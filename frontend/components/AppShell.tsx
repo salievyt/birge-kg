@@ -269,6 +269,7 @@ export function AppShell() {
               userId={account?.profile.user.id}
               csrf={csrf}
               onSave={updateEntity}
+              key={`${detailKind}-${params.id}`}
               busy={busy}
               onReview={(userId, action) => reviewApplication(Number(params.id), userId, action)}
               kind={detailKind}

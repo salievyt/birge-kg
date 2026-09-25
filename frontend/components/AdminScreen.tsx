@@ -26,6 +26,7 @@ export function AdminScreen({ csrf, canModerate, busy, projects, clubs, ideas, a
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     const values = Object.fromEntries(new FormData(event.currentTarget));
     const body: Record<string, unknown> = {
       description: String(values.description ?? ""),
@@ -37,7 +38,7 @@ export function AdminScreen({ csrf, canModerate, busy, projects, clubs, ideas, a
     const resourceKey: ResourceKey = entityType === "project" ? "projects" : "clubs";
     void onCreate(resourceKey, body).then(ok => {
       if (ok) {
-        event.currentTarget.reset();
+        form.reset();
         setImage("");
       }
     });
@@ -79,7 +80,7 @@ export function AdminScreen({ csrf, canModerate, busy, projects, clubs, ideas, a
             </form>
           </div>
           <h2>Проекты</h2>
-          <ItemCards items={projects} />
+          <ItemCards items={projects} kind="project" onOpen={item => onOpenDetail("project", item.id)} />
           <h2>Клубы на рассмотрении</h2>
           <ItemCards items={clubs} kind="club" onOpen={item => onOpenDetail("club", item.id)} />
           {clubs.map(club => <div className="formRow" key={club.id}><strong>{club.name}</strong><button className="primaryButton" disabled={busy} onClick={() => onDecide("clubs", club.id, "approve")}>Одобрить</button><button className="secondaryButton" disabled={busy} onClick={() => onDecide("clubs", club.id, "reject")}>Отклонить</button></div>)}
@@ -94,6 +95,7 @@ export function AdminScreen({ csrf, canModerate, busy, projects, clubs, ideas, a
                   <p>{idea.description}</p>
                   {idea.direction && <span className="tag">{idea.direction}</span>}
                   <div className="formRow">
+                    <button className="secondaryButton" onClick={() => onOpenDetail("idea", idea.id)}>Рассмотреть и ответить</button>
                     <button className="primaryButton" disabled={busy} onClick={() => onDecide("ideas", idea.id, "approve")}>Одобрить</button>
                     <button className="secondaryButton" disabled={busy} onClick={() => onDecide("ideas", idea.id, "reject")}>Отклонить</button>
                   </div>

@@ -1,7 +1,5 @@
 "use client";
 
-import { Heart } from "lucide-react";
-
 import { kindLabel } from "@/lib/domain/format";
 import type { FavoriteDto, ResourceKind } from "@/lib/domain/types";
 
@@ -26,7 +24,7 @@ export function FavoritesScreen({ favorites, loading, onOpenDetail, onOpenEvent,
         <div><p className="eyebrow">СОХРАНЁННОЕ</p><h1>Избранное</h1></div>
       </div>
       {items.length === 0 ? (
-        <p className="emptyState">Пока нет сохранённого. Добавляйте проекты и идеи кнопкой  на карточках.</p>
+        <p className="emptyState">Нет сохранённых публикаций.</p>
       ) : (
         <div className="favoriteGroups">
           {(["project", "idea", "club", "event"] as ResourceKind[]).map(resource => {
@@ -46,11 +44,6 @@ export function FavoritesScreen({ favorites, loading, onOpenDetail, onOpenEvent,
             );
           })}
         </div>
-      )}
-      {items.length > 0 && (
-        <button className="secondaryButton" onClick={() => { /* полноэкранная чистка не требуется */ }}>
-          <Heart size={16} />
-        </button>
       )}
     </section>
   );

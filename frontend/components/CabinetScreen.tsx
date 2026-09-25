@@ -97,13 +97,11 @@ export function CabinetScreen({
         </section>
         <section>
           <h2>Избранное</h2>
-          <ItemCards
-            items={cabinet.favorites.map(f => f.item)}
-            kind={cabinet.favorites[0]?.resource_type ?? "project"}
-            favorited
-            onOpen={(item, k) => openItem(k === "people" ? "project" : k, item.id)}
-            onFavorite={(item) => onToggleFavorite(cabinet.favorites.find(f => f.item.id === item.id)?.resource_type ?? "project", item.id)}
-          />
+          {cabinet.favorites.length === 0 && <p className="emptyState">Нет сохранённых публикаций.</p>}
+          {(["project", "idea", "club", "event"] as ResourceKind[]).map(kind => {
+            const items = cabinet.favorites.filter(f => f.resource_type === kind).map(f => f.item);
+            return items.length > 0 && <ItemCards key={kind} items={items} kind={kind} favorited onOpen={item => openItem(kind, item.id)} onFavorite={item => onToggleFavorite(kind, item.id)} />;
+          })}
         </section>
       </div>
     </section>

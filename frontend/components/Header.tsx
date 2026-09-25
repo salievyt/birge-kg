@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import { Menu, X, UserRound } from "lucide-react";
 import Image from "next/image";
 
 import {
@@ -43,6 +43,8 @@ export function Header({ screen, menuOpen, isAuthenticated, canModerate, theme, 
             </a>
           ))}
         </div>
+        <details className="navMore" key={screen}>
+          <summary>Ещё</summary>
         <div className="navServices">
           {serviceItems.map(section => (
             <a key={section.id} href={`#${section.id}`} aria-current={screen === section.id ? "page" : undefined}>
@@ -50,11 +52,12 @@ export function Header({ screen, menuOpen, isAuthenticated, canModerate, theme, 
             </a>
           ))}
         </div>
+        </details>
       </nav>
       <div className="headerTools">
         <ThemeToggle theme={theme} onToggle={onToggleTheme} />
-        <a className="accountLink" href={isAuthenticated ? "#profile" : "#login"}>
-          {isAuthenticated ? "Личный кабинет" : "Войти"}
+        <a className="accountLink" aria-label={isAuthenticated ? "Личный кабинет" : "Войти"} title={isAuthenticated ? "Личный кабинет" : "Войти"} href={isAuthenticated ? "#profile" : "#login"}>
+          <UserRound size={20} /><span>{isAuthenticated ? "Личный кабинет" : "Войти"}</span>
         </a>
         <button className="iconButton menuToggle" aria-label="Меню" aria-expanded={menuOpen} onClick={onToggleMenu}>
           {menuOpen ? <X /> : <Menu />}

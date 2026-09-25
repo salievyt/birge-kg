@@ -73,7 +73,7 @@ const THEME_KEY = "birge-theme";
 const TOAST_DURATION = 5200;
 
 function fromHash(hash: string): Screen {
-  const id = hash.replace(/^#/, "");
+  const id = hash.replace(/^#/, "").split("?")[0];
   return (id || "overview") as Screen;
 }
 
@@ -102,7 +102,7 @@ function messageFor(error: unknown, fallback: string): string {
 }
 
 export function useAppController(): AppController {
-  const [screen, setScreen] = useState<Screen>(initialScreen);
+  const [screen, setScreen] = useState<Screen>("overview");
   const [menuOpen, setMenuOpen] = useState(false);
   const [account, setAccount] = useState<AccountData | null>(null);
   const [csrf, setCsrf] = useState("");
@@ -113,7 +113,7 @@ export function useAppController(): AppController {
   const [params, setParams] = useState<Record<string, string | number>>({});
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [theme, setTheme] = useState<Theme>(initialTheme);
+  const [theme, setTheme] = useState<Theme>("light");
   const [toasts, setToasts] = useState<ToastDto[]>([]);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -138,6 +138,8 @@ export function useAppController(): AppController {
     return () => timers.forEach(window.clearTimeout);
   }, []);
 
+  useEffect(() => { setTheme(initialTheme()); }, []);
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     try {
@@ -150,7 +152,10 @@ export function useAppController(): AppController {
   useEffect(() => {
     const sync = () => {
       setScreen(fromHash(window.location.hash));
+      setParams(Object.fromEntries(new URLSearchParams(window.location.hash.split("?")[1] || "")));
+      setViews({});
       setMenuOpen(false);
+      window.scrollTo(0, 0);
     };
     sync();
     window.addEventListener("hashchange", sync);
@@ -176,6 +181,10 @@ export function useAppController(): AppController {
     async function load() {
       setLoading(true);
       try {
+        if (["profile", "cabinet", "notifications", "favorites", "settings"].includes(screen) && !accountKey) {
+          window.location.hash = "login";
+          return;
+        }
         if (screen === "profile") {
           setAccount(await sessionApi.account(controller.signal));
         } else if (screen === "admin") {
@@ -216,6 +225,8 @@ export function useAppController(): AppController {
           const payload = await appApi.calendar(year, month, controller.signal);
           setViews(v => ({ ...v, calendar: payload }));
         } else if (screen === "faculty" && !params.faculty) {
+          const list = await appApi.faculties(controller.signal);
+          setViews(v => ({ ...v, faculties: list }));
         } else if (screen === "faculty" && params.faculty) {
           const payload = await appApi.faculty(String(params.faculty), controller.signal);
           setViews(v => ({ ...v, faculty: payload }));
@@ -247,7 +258,7 @@ export function useAppController(): AppController {
 
     load();
     return () => controller.abort();
-  }, [screen, ready, accountKey, reloadKey, params, notify, account]);
+  }, [screen, ready, accountKey, reloadKey, params, notify, account?.can_moderate]);
 
   const toggleMenu = useCallback(() => setMenuOpen(open => !open), []);
 
@@ -264,29 +275,25 @@ export function useAppController(): AppController {
 
   const openDetail = useCallback(
     (kind: ResourceKind, id: number) => {
-      setParams(p => ({ ...p, kind, id }));
-      window.location.hash = "detail";
+      window.location.hash = `detail?kind=${kind}&id=${id}`;
     },
     [],
   );
   const openPerson = useCallback(
     (id: number) => {
-      setParams(p => ({ ...p, id }));
-      window.location.hash = "person";
+      window.location.hash = `person?id=${id}`;
     },
     [],
   );
   const openEvent = useCallback(
     (id: number) => {
-      setParams(p => ({ ...p, id }));
-      window.location.hash = "event";
+      window.location.hash = `event?id=${id}`;
     },
     [],
   );
   const openFaculty = useCallback(
     (name: string) => {
-      setParams(p => ({ ...p, faculty: name }));
-      window.location.hash = "faculty";
+      window.location.hash = `faculty?faculty=${encodeURIComponent(name)}`;
     },
     [],
   );

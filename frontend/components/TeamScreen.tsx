@@ -80,7 +80,7 @@ export function TeamScreen({ matching, loading, isAuthenticated, canModerate, on
             <div className="cardList">
               {people.map(person => (
                 <article className="card" key={person.user.id}>
-                  <h3><button className="cardTitle" onClick={() => onOpenPerson(person.user.id)}>{userName(person.user)}</button></h3>
+                  <h3><button className="cardTitle" onClick={() => onOpenPerson(person.id)}>{userName(person.user)}</button></h3>
                   <p>{person.faculty} · {person.course} курс · {person.specialty}</p>
                   <div className="tags">{person.skills.map(skill => <span className="tag" key={skill}>{skill}</span>)}</div>
                 </article>

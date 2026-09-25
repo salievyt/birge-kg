@@ -34,6 +34,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     readonly fields?: unknown,
+    readonly status?: number,
   ) {
     super(message);
   }
@@ -60,7 +61,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   const result = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   if (!response.ok) {
-    throw new ApiError(typeof result.error === "string" ? result.error : "Сервер недоступен.", result.fields);
+    const details = Object.entries(result).map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(" ") : String(value)}`).join("; ");
+    throw new ApiError(typeof result.error === "string" ? result.error : typeof result.detail === "string" ? result.detail : details || "Сервер недоступен.", result.fields, response.status);
   }
   return result as T;
 }
