@@ -88,6 +88,26 @@ class ContentTests(AuthTestCase):
             response = self.client.post('/api/upload/', {'file': SimpleUploadedFile(name, b'not an image')}, HTTP_X_CSRFTOKEN=self.csrf)
             self.assertEqual(response.status_code, 400)
 
+    def test_event_registration_rejects_past_and_full_events(self):
+        owner = User.objects.create_user('event-leader')
+        event = Event.objects.create(organizer=owner, title='Past', starts_at=timezone.now() - timedelta(days=1), location='Campus', capacity=1)
+        url = f'/api/events/{event.id}/register/'
+        self.assertEqual(self.post(url, {}).status_code, 400)
+        event.starts_at = timezone.now() + timedelta(days=1)
+        event.save()
+        event.attendees.add(owner)
+        self.assertEqual(self.post(url, {}).status_code, 400)
+
+    def test_upcoming_events_compare_timezone_aware_dates(self):
+        from api.infrastructure.repositories import EventRepository
+        current = timezone.now()
+        past = Event.objects.create(organizer=self.user, title='Past', starts_at=current - timedelta(minutes=1), location='Campus')
+        future = Event.objects.create(organizer=self.user, title='Future', starts_at=current + timedelta(minutes=1), location='Campus')
+        upcoming = list(EventRepository.upcoming().values_list('id', flat=True))
+        self.assertIn(future.id, upcoming)
+        self.assertNotIn(past.id, upcoming)
+
+
 class NotificationTests(AuthTestCase):
     def setUp(self):
         super().setUp()

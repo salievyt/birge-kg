@@ -392,10 +392,13 @@ class EventService:
             "is_favorited": FavoriteRepository.is_favorited(user, "event", event_id) if user.is_authenticated else False,
         }
 
+    @transaction.atomic
     def register(self, event_id: int, user):
-        event = self.event_repo.by_id(event_id)
+        event = Event.objects.select_for_update().filter(pk=event_id).first()
         if event is None:
             raise ValidationError("Событие не найдено.")
+        if event.starts_at <= timezone.now():
+            raise ValidationError("Регистрация на это событие уже закрыта.")
         if event.attendees.filter(id=user.id).exists() or event.organizer_id == user.id:
             raise ValidationError("Вы уже зарегистрированы.")
         if event.capacity and event.attendees.count() >= event.capacity:
@@ -411,14 +414,14 @@ class EventService:
         return event
 
     def cancel(self, event_id: int, user):
-        event = self.event_repo.by_id(event_id)
+        event = Event.objects.select_for_update().filter(pk=event_id).first()
         if event is None:
             raise ValidationError("Событие не найдено.")
         event.attendees.remove(user)
         return event
 
     def toggle_reminder(self, event_id: int, user):
-        event = self.event_repo.by_id(event_id)
+        event = Event.objects.select_for_update().filter(pk=event_id).first()
         if event is None:
             raise ValidationError("Событие не найдено.")
         return EventReminderRepository.toggle(user, event)

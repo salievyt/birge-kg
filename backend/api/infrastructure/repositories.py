@@ -240,7 +240,7 @@ class EventRepository:
     @staticmethod
     def upcoming(limit: int | None = None) -> QuerySet[Event]:
         events = Event.objects.select_related("organizer", "club").filter(
-            starts_at__gte=datetime.now()
+            starts_at__gte=timezone.now()
         ).order_by("starts_at")
         return events[:limit] if limit else events
 
