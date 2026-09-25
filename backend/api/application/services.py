@@ -84,13 +84,18 @@ class AccountService:
     def sign_in(self, username: str, password: str) -> User | None:
         return authenticate(username=username, password=password)
 
-    def register(self, username: str, first_name: str, password: str) -> User:
+    def register(self, username: str, first_name: str, password: str, email: str = "") -> User:
         if not username or not first_name or len(username) > 150 or len(first_name) > 150:
             raise ValidationError("Укажите имя и логин (до 150 символов).")
         User._meta.get_field("username").run_validators(username)
         if User.objects.filter(username__iexact=username).exists():
             raise ValidationError("Этот логин уже занят.")
-        user = User(username=username, first_name=first_name)
+        from django.core.validators import validate_email
+        if email:
+            validate_email(email)
+            if User.objects.filter(email__iexact=email).exists():
+                raise ValidationError("Этот email уже используется.")
+        user = User(username=username, first_name=first_name, email=email)
         validate_password(password, user)
         with transaction.atomic():
             user.set_password(password)

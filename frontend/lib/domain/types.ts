@@ -7,6 +7,8 @@ export type Screen =
   | "profile"
   | "login"
   | "register"
+  | "forgot-password"
+  | "reset-password"
   | "admin"
   | "cabinet"
   | "notifications"
@@ -31,7 +33,10 @@ export interface UserDto {
   last_name?: string;
 }
 
+  id: number;
 export interface ProfileDto {
+  id: number;
+  email?: string;
   user: UserDto;
   faculty: string;
   course: number;
@@ -138,6 +143,8 @@ export interface AuthResponse {
 }
 
 export interface ProfilePayload {
+  email?: string;
+  current_password?: string;
   faculty: string;
   course: number;
   specialty: string;
@@ -150,6 +157,7 @@ export interface ProfilePayload {
 }
 
 export interface AuthenticationInput {
+  email?: string;
   username: string;
   password: string;
   first_name?: string;

@@ -68,6 +68,12 @@ interface CsrfDto {
 }
 
 export const sessionApi = {
+  resetPassword(email: string, csrf: string): Promise<{ message: string }> {
+    return request("/api/auth/password-reset/", { method: "POST", csrf, body: { email } });
+  },
+  confirmPassword(body: Record<string, string>, csrf: string): Promise<{ message: string }> {
+    return request("/api/auth/password-reset-confirm/", { method: "POST", csrf, body });
+  },
   fetch(signal?: AbortSignal): Promise<SessionDto> {
     return request("/api/auth/session/", { signal });
   },

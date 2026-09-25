@@ -43,3 +43,41 @@ class NotificationTests(AuthTestCase):
         self.register('notification-reader')
         self.user = User.objects.get(username='notification-reader')
 
+class PasswordTests(AuthTestCase):
+    def test_email_reset_changes_password_and_cannot_be_replayed(self):
+        user = User.objects.create_user('reset-user', email='reset@example.com', password='Old-strong-547!')
+        response = self.post('/api/auth/password-reset/', {'email': user.email})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        link = next(line for line in mail.outbox[0].body.splitlines() if line.startswith('https://'))
+        query = parse_qs(urlsplit(link).fragment.split('?')[1])
+        payload = {'uid': query['uid'][0], 'token': query['token'][0], 'password': 'New-strong-9138!'}
+        response = self.post('/api/auth/password-reset-confirm/', payload)
+        self.assertEqual(response.status_code, 200)
+        user.refresh_from_db()
+        self.assertTrue(user.check_password(payload['password']))
+        self.assertEqual(self.post('/api/auth/password-reset-confirm/', payload).status_code, 400)
+        missing = self.post('/api/auth/password-reset/', {'email': 'missing@example.com'})
+        self.assertEqual(missing.json(), self.post('/api/auth/password-reset/', {'email': user.email}).json())
+
+    def test_invalid_and_expired_reset(self):
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+        user = User.objects.create_user('expiry', password='Old-strong-547!')
+        token = default_token_generator.make_token(user)
+        payload = {'uid': urlsafe_base64_encode(force_bytes(user.pk)), 'token': token, 'password': 'New-strong-9138!'}
+        with override_settings(PASSWORD_RESET_TIMEOUT=-1):
+            self.assertEqual(self.post('/api/auth/password-reset-confirm/', payload).status_code, 400)
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend', EMAIL_HOST='')
+    def test_missing_mail_configuration_is_reported(self):
+        self.assertEqual(self.post('/api/auth/password-reset/', {'email': 'test@example.com'}).status_code, 503)
+
+    def test_email_private_and_requires_password_to_change(self):
+        response = self.post('/api/auth/register/', {'username': 'private-mail', 'first_name': 'Test', 'password': 'Test-strong-9138!', 'email': 'private@example.com'})
+        self.csrf = response.json()['csrf']
+        self.assertEqual(response.json()['account']['profile']['email'], 'private@example.com')
+        self.assertNotIn('email', str(Client().get('/api/profiles/').json()))
+        self.assertEqual(self.patch_me({'email': 'next@example.com'}).status_code, 400)
+        self.assertEqual(self.patch_me({'email': 'next@example.com', 'current_password': 'Test-strong-9138!'}).status_code, 200)

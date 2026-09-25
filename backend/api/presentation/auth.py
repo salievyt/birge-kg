@@ -50,6 +50,7 @@ def register(request):
             username=str(data.get("username", "")).strip(),
             first_name=str(data.get("first_name", "")).strip(),
             password=data.get("password", ""),
+            email=str(data.get("email", "")).strip().lower(),
         )
     except ValidationError as error:
         messages = getattr(error, "messages", [str(error)])
@@ -85,6 +86,19 @@ def me(request):
         serializer = ProfileSerializer(profile, data=data, partial=True)
         if not serializer.is_valid():
             return JsonResponse({"error": "Проверьте поля профиля.", "fields": serializer.errors}, status=400)
+        if "email" in data and data["email"] != request.user.email:
+            from django.core.validators import validate_email
+            from django.contrib.auth.models import User
+            try:
+                validate_email(data["email"])
+            except (ValidationError, TypeError):
+                return JsonResponse({"error": "Укажите корректный email."}, status=400)
+            if not request.user.check_password(data.get("current_password", "")):
+                return JsonResponse({"error": "Для смены email укажите текущий пароль."}, status=400)
+            if User.objects.filter(email__iexact=data["email"]).exclude(pk=request.user.pk).exists():
+                return JsonResponse({"error": "Этот email уже используется."}, status=400)
+            request.user.email = data["email"].strip().lower()
+            request.user.save(update_fields=["email"])
         serializer.save()
 
     payload = service.personal_cabinet(request.user)
@@ -100,4 +114,6 @@ def me(request):
 
 
 def _serialize_account(account):
-    return {"profile": ProfileSerializer(account["profile"]).data, "can_moderate": account["can_moderate"]}
+    profile = ProfileSerializer(account["profile"]).data
+    profile["email"] = account["profile"].user.email
+    return {"profile": profile, "can_moderate": account["can_moderate"]}

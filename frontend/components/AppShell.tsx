@@ -25,6 +25,7 @@ import { AchievementsScreen } from "./AchievementsScreen";
 import { AdmissionScreen } from "./AdmissionScreen";
 import { AdminScreen } from "./AdminScreen";
 import { AuthScreen } from "./AuthScreen";
+import { PasswordScreen } from "./PasswordScreen";
 import { CabinetScreen } from "./CabinetScreen";
 import { CalendarScreen } from "./CalendarScreen";
 import { CatalogScreen } from "./CatalogScreen";
@@ -48,7 +49,7 @@ import { Toasts } from "./Toasts";
 
 const catalogScreens: readonly ResourceKey[] = ["projects", "ideas", "clubs", "events", "people"];
 const knownScreens: readonly Screen[] = [
-  "overview", "profile", "login", "register", "admin",
+  "overview", "profile", "login", "register", "admin", "forgot-password", "reset-password",
   "cabinet", "notifications", "favorites", "team", "feed", "achievements",
   "calendar", "faculty", "person", "detail", "event", "admission", "help", "settings",
   ...catalogScreens,

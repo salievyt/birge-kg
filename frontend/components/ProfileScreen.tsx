@@ -26,6 +26,8 @@ export function ProfileScreen({ account, busy, onSave, onLogout }: ProfileScreen
     event.preventDefault();
     const values = Object.fromEntries(new FormData(event.currentTarget));
     onSave({
+      email: String(values.email ?? ""),
+      current_password: String(values.current_password ?? ""),
       faculty: String(values.faculty ?? ""),
       course: Number(values.course),
       specialty: String(values.specialty ?? ""),
@@ -57,6 +59,8 @@ export function ProfileScreen({ account, busy, onSave, onLogout }: ProfileScreen
       <div className="accountLayout">
         <form key={profile.user.username} className="accountForm" onSubmit={save} aria-busy={busy}>
           <h2>Профиль студента</h2>
+          <label>Email для восстановления<input type="email" name="email" defaultValue={profile.email || ""} required /></label>
+          <label>Текущий пароль при смене email<input type="password" name="current_password" autoComplete="current-password" /></label>
           <label>Факультет<input name="faculty" defaultValue={profile.faculty} maxLength={120} required /></label>
           <label>Курс<input name="course" type="number" min={1} max={6} defaultValue={profile.course} required /></label>
           <label>Специальность<input name="specialty" defaultValue={profile.specialty} maxLength={160} required /></label>
