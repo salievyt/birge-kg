@@ -348,6 +348,8 @@ def _action_item(request, resource: str, resource_id, action_name: str):
 
 
 def _comments(request, resource: str, resource_id):
+    if ItemService()._resolve(resource, resource_id) is None:
+        return Response({"error": "Запись не найдена."}, status=404)
     if request.method == "POST":
         text = request.data.get("text", "")
         try:

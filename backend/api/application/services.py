@@ -477,6 +477,7 @@ class FavoritesService:
                 "item": self._resolve_item(favorite.resource_type, favorite.resource_id),
             }
             for favorite in self.favorite_repo.for_user(user)
+            if self._resolve_item(favorite.resource_type, favorite.resource_id) is not None
         ]
 
     def toggle(self, user, resource_type: str, resource_id: int) -> bool:
