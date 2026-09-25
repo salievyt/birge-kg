@@ -45,6 +45,15 @@ export interface ProfileDto {
 }
 
 export interface ItemDto {
+  report?: string;
+  report_url?: string;
+  report_photos?: string[];
+  is_moderated?: boolean;
+  is_rejected?: boolean;
+  owner?: UserDto;
+  author?: UserDto;
+  lead?: UserDto;
+  organizer?: UserDto;
   id: number;
   title?: string;
   name?: string;

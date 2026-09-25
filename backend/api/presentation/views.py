@@ -6,6 +6,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.middleware.csrf import get_token
 from django.utils import timezone
@@ -15,6 +16,7 @@ from rest_framework import filters, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from ..permissions import PublicReadOwnerWrite
 
 from ..application.services import (
     AccountService,
@@ -90,7 +92,15 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
-class ProjectViewSet(viewsets.ModelViewSet):
+class OwnedContentViewSet(viewsets.ModelViewSet):
+    permission_classes = [PublicReadOwnerWrite]
+    owner_field = "owner"
+
+    def perform_create(self, serializer):
+        serializer.save(**{self.owner_field: self.request.user})
+
+
+class ProjectViewSet(OwnedContentViewSet):
     serializer_class = ProjectSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["title", "description", "direction", "needed_roles"]
@@ -115,7 +125,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return _comments(request, "project", pk)
 
 
-class IdeaViewSet(viewsets.ModelViewSet):
+class IdeaViewSet(OwnedContentViewSet):
+    owner_field = "author"
     serializer_class = IdeaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     ordering_fields = ["created_at", "votes"]
@@ -153,7 +164,8 @@ class IdeaViewSet(viewsets.ModelViewSet):
         return _comments(request, "idea", pk)
 
 
-class ClubViewSet(viewsets.ModelViewSet):
+class ClubViewSet(OwnedContentViewSet):
+    owner_field = "lead"
     serializer_class = ClubSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     ordering_fields = ["created_at"]
@@ -178,7 +190,8 @@ class ClubViewSet(viewsets.ModelViewSet):
         return _comments(request, "club", pk)
 
 
-class EventViewSet(viewsets.ModelViewSet):
+class EventViewSet(OwnedContentViewSet):
+    owner_field = "organizer"
     serializer_class = EventSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     ordering_fields = ["created_at", "starts_at"]

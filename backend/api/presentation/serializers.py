@@ -37,6 +37,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    needed_roles = serializers.ListField(child=serializers.CharField(max_length=80), max_length=30, required=False)
     owner = UserSerializer(read_only=True)
     status_label = serializers.CharField(source="get_status_display", read_only=True)
 

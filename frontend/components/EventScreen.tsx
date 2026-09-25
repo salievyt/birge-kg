@@ -45,7 +45,7 @@ export function EventScreen({
         <div className="eventFact"><CalendarDays size={20} /><div><strong>{fmtDateTime(item.starts_at)}</strong><span>Когда</span></div></div>
         <div className="eventFact"><MapPin size={20} /><div><strong>{item.location}</strong><span>Где</span></div></div>
         {item.capacity ? <div className="eventFact"><strong>{seatsTaken}/{item.capacity}</strong><span>Мест занято</span></div> : null}
-        <div className="eventFact"><strong>{isOrganizer ? "Вы организатор" : userName(item.user)}</strong><span>Организатор</span></div>
+        <div className="eventFact"><strong>{isOrganizer ? "Вы организатор" : userName(item.organizer ?? item.user)}</strong><span>Организатор</span></div>
       </div>
 
       <p className="eventDescription">{item.description}</p>

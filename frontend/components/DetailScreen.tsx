@@ -74,7 +74,7 @@ export function DetailScreen({
           {item.progress !== undefined && (
             <div className="progressRow"><span>Прогресс {item.progress}%</span><div className="rowTrack"><i style={{ width: `${item.progress}%` }} /></div></div>
           )}
-          <small className="mutedMeta">Создано {fmtDate(item.created_at)} · {roleWord}: {userName(item.user ?? bundle.item.user)}</small>
+          <small className="mutedMeta">Создано {fmtDate(item.created_at)} · {roleWord}: {userName(item.owner ?? item.author ?? item.lead ?? item.user)}</small>
         </article>
 
         <aside className="detailAside">
