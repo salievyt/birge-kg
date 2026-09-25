@@ -1,7 +1,18 @@
-from datetime import datetime
+import json
 
+from django.db import connections
 from django.db.models import Count, Q, QuerySet
 from django.db.models.functions import TruncMonth
+from django.utils import timezone
+
+
+def filter_tag_text(queryset, field: str, value: str):
+    condition = Q(**{f"{field}__icontains": value})
+    if connections[queryset.db].vendor == "sqlite":
+        # Django stores non-ASCII JSON strings escaped in local SQLite databases.
+        encoded = json.dumps(value, ensure_ascii=True)[1:-1]
+        condition |= Q(**{f"{field}__icontains": encoded})
+    return queryset.filter(condition)
 
 from core.models import (
     Achievement,
@@ -28,7 +39,7 @@ class ProfileRepository:
 
     @staticmethod
     def public() -> QuerySet[Profile]:
-        return Profile.objects.select_related("user").filter(privacy_level="public")
+        return Profile.objects.select_related("user").filter(privacy_level="public").order_by("-created_at", "id")
 
     @staticmethod
     def by_id(profile_id: int) -> Profile | None:
@@ -70,7 +81,7 @@ class ProfileRepository:
     @staticmethod
     def by_faculty(limit: int = 5):
         rows = (
-            Profile.objects.values("faculty")
+            Profile.objects.exclude(faculty__regex=r"^\s*$").values("faculty")
             .annotate(count=Count("id"))
             .order_by("-count", "faculty")[:limit]
         )
@@ -132,7 +143,7 @@ class ProjectRepository:
     @staticmethod
     def by_direction(limit: int = 5):
         rows = (
-            Project.objects.values("direction")
+            Project.objects.exclude(direction__regex=r"^\s*$").values("direction")
             .annotate(count=Count("id"))
             .order_by("-count", "direction")[:limit]
         )

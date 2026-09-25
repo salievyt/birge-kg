@@ -61,7 +61,7 @@ export function DashboardStats({ dashboard, onOpenFaculty }: { dashboard: Dashbo
           <h3>Топ факультетов</h3>
           {dashboard.top_faculties.length ? (
             <div className="rows">
-              {dashboard.top_faculties.map(item => (
+              {dashboard.top_faculties.filter(item => item.name.trim()).map(item => (
                 <button
                   className="row facultyRow"
                   key={item.name}
@@ -81,7 +81,7 @@ export function DashboardStats({ dashboard, onOpenFaculty }: { dashboard: Dashbo
         <div className="chartCard">
           <h3>Направления</h3>
           {dashboard.directions.length ? (
-            <div className="tags">{dashboard.directions.map(item => <span className="tag" key={item.name}>{item.name} · {item.count}</span>)}</div>
+            <div className="tags">{dashboard.directions.filter(item => item.name.trim()).map(item => <span className="tag" key={item.name}>{item.name === "birge-info" ? "Сообщество BIRGE" : item.name} · {item.count}</span>)}</div>
           ) : (
             <p className="emptyState">Пока нет данных.</p>
           )}

@@ -183,8 +183,8 @@ export function useAppController(): AppController {
         } else if (screen === "admin") {
           const moderationPayload = await catalogApi.moderation();
           setViews(v => ({ ...v, moderation: moderationPayload }));
-        } else if (screen === "overview" || isResourceKey(screen)) {
-          const targets: ResourceKey[] = screen === "overview" ? browserResources : [screen];
+        } else if (screen === "overview") {
+          const targets: ResourceKey[] = browserResources.filter(resource => resource !== "people");
           const entries = await Promise.all(
             targets.map(async resource => [resource, await catalogApi.list(resource, controller.signal)] as const),
           );
@@ -220,6 +220,7 @@ export function useAppController(): AppController {
           const month = Number(params.month ?? now.getMonth() + 1);
           const payload = await appApi.calendar(year, month, controller.signal);
           setViews(v => ({ ...v, calendar: payload }));
+        } else if (screen === "faculty" && !params.faculty) {
         } else if (screen === "faculty" && params.faculty) {
           const payload = await appApi.faculty(String(params.faculty), controller.signal);
           setViews(v => ({ ...v, faculty: payload }));

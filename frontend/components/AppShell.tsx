@@ -152,6 +152,7 @@ export function AppShell() {
           )}
           {catalogScreens.includes(screen as ResourceKey) && (
             <CatalogScreen
+              key={screen}
               title={titleFor(screen) ?? ""}
               resource={screen as ResourceKey}
               authenticated={Boolean(account)}
@@ -159,7 +160,7 @@ export function AppShell() {
               busy={busy}
               onCreate={createEntity}
               onItemOpen={(item) => {
-                if (screen === "people") openPerson(item.user?.id ?? 0);
+                if (screen === "people") openPerson(item.id);
                 else if (screen === "events") openEvent(item.id);
                 else if (screen === "ideas") openDetail("idea", item.id);
                 else if (screen === "clubs") openDetail("club", item.id);
@@ -253,6 +254,9 @@ export function AppShell() {
           )}
           {screen === "faculty" && (
             <FacultyScreen
+              key={String(params.faculty || "all")}
+              faculties={views.faculties as string[] | undefined}
+              onSelect={openFaculty}
               faculty={views.faculty as FacultyDto | undefined}
               loading={loading}
               onOpenDetail={openDetail}

@@ -34,6 +34,7 @@ from ..application.services import (
     VotesService,
 )
 from ..infrastructure.repositories import (
+    filter_tag_text,
     AnnouncementRepository,
     ClubRepository,
     CommentRepository,
@@ -75,7 +76,14 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ["faculty", "specialty", "skills", "interests", "user__first_name", "user__last_name"]
 
     def get_queryset(self):
-        return ProfileRepository.public()
+        queryset = ProfileRepository.public()
+        for parameter, field in (("faculty", "faculty"), ("specialty", "specialty"), ("skill", "skills"), ("interest", "interests")):
+            value = self.request.query_params.get(parameter, "").strip()
+            if value:
+                queryset = filter_tag_text(queryset, field, value) if field in ("skills", "interests") else queryset.filter(**{f"{field}__icontains": value})
+        if self.request.query_params.get("available") == "true":
+            queryset = queryset.filter(is_available=True)
+        return queryset
 
     def retrieve(self, request, *args, **kwargs):
         profile = ProfileRepository.by_id(kwargs["pk"])
@@ -116,7 +124,12 @@ class ProjectViewSet(OwnedContentViewSet):
         return Response({"ok": True})
 
     def get_queryset(self):
-        return ProjectRepository.newest()
+        queryset = ProjectRepository.newest()
+        for parameter, lookup in (("status", "status"), ("direction", "direction__icontains"), ("role", "needed_roles__icontains")):
+            value = self.request.query_params.get(parameter, "").strip()
+            if value:
+                queryset = filter_tag_text(queryset, "needed_roles", value) if parameter == "role" else queryset.filter(**{lookup: value})
+        return queryset
 
     def retrieve(self, request, *args, **kwargs):
         return _respond_detail(request, "project", kwargs["pk"])

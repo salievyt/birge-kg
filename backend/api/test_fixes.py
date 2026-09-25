@@ -119,6 +119,14 @@ class ContentTests(AuthTestCase):
         invalid = self.client.patch(url, {'status': 'invented'}, content_type='application/json', HTTP_X_CSRFTOKEN=self.csrf)
         self.assertEqual(invalid.status_code, 400)
 
+    def test_page_two_and_blank_faculties(self):
+        Project.objects.bulk_create([Project(owner=self.user, title=f'P{i}', direction='IT') for i in range(25)])
+        first = self.client.get('/api/projects/').json()
+        second = self.client.get('/api/projects/?page=2').json()
+        self.assertEqual(len(first['results']), 20)
+        self.assertEqual(len(second['results']), 5)
+        self.assertEqual(self.client.get('/api/dashboard/').json()['top_faculties'], [])
+
     def test_upload_rejects_fake_image_and_svg(self):
         from django.core.files.uploadedfile import SimpleUploadedFile
         for name in ['fake.png', 'script.svg']:
@@ -159,6 +167,25 @@ class ContentTests(AuthTestCase):
         upcoming = list(EventRepository.upcoming().values_list('id', flat=True))
         self.assertIn(future.id, upcoming)
         self.assertNotIn(past.id, upcoming)
+
+
+class CatalogFilterTests(AuthTestCase):
+    def test_project_filters_combine_with_search(self):
+        owner = User.objects.create_user('filter-owner')
+        target = Project.objects.create(owner=owner, title='Campus map', direction='IT', needed_roles=['Python', 'Дизайнер'], status='recruiting')
+        Project.objects.create(owner=owner, title='Campus archive', direction='IT', needed_roles=['Python'], status='done')
+        result = self.client.get('/api/projects/?status=recruiting&direction=it&role=Python&search=Campus').json()
+        self.assertEqual([row['id'] for row in result['results']], [target.id])
+        russian = self.client.get('/api/projects/', {'role': 'Дизайнер'}).json()
+        self.assertEqual([row['id'] for row in russian['results']], [target.id])
+
+    def test_people_filters_preserve_privacy(self):
+        from core.models import Profile
+        for name, privacy, available in [('visible', 'public', True), ('hidden', 'private', True), ('unavailable', 'public', False)]:
+            user = User.objects.create_user(name)
+            Profile.objects.update_or_create(user=user, defaults={'privacy_level': privacy, 'is_available': available, 'faculty': 'FIT', 'specialty': 'Engineering', 'skills': ['Python'], 'interests': ['IT']})
+        result = self.client.get('/api/profiles/?faculty=FIT&specialty=Engineering&skill=Python&interest=IT&available=true').json()
+        self.assertEqual([row['user']['username'] for row in result['results']], ['visible'])
 
 
 class NotificationTests(AuthTestCase):

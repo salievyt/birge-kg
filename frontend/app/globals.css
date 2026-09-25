@@ -777,7 +777,31 @@ p { line-height: 1.5; }
 .achievementPopup svg { color: var(--amber); flex: none; }
 .achievementPopup span { flex: 1; display: grid; gap: 2px; }
 .achievementPopup strong { font-size: 13px; color: var(--amber); }
+.navMore .navServices { position: absolute; right: 0; top: 100%; width: 245px; display: grid; gap: 0; padding: 12px 20px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; z-index: 30; }
 .createForm { max-width: 640px; margin: 24px 0 40px; }
+.catalogSearch { display: flex; align-items: center; gap: 10px; max-width: 480px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 20px 0 28px; background: var(--card); }
+.catalogSearch input { min-width: 0; width: 100%; border: 0; background: transparent; color: var(--ink); font: inherit; }
+.loadMore { margin: 28px auto; }
+.screen .primaryButton { display: inline-flex; align-items: center; gap: 8px; }
+.cardExcerpt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.emptyState a { color: var(--teal); }
+.emptyState svg { vertical-align: middle; }
+.accountLink { display: inline-flex; align-items: center; gap: 8px; }
+.navlinks { justify-content: center; }
+@media(max-width:700px) {
+  .accountLink { width: 40px; height: 40px; justify-content: center; }
+  .accountLink span { display: none; }
+  .brand img { width: 60px; height: 52px; }
+  .brand small { display: none; }
+  .screen>.blockHeader { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .screen>.blockHeader h1 { margin-bottom: 0; }
+  .screen>.blockHeader .primaryButton { white-space: nowrap; font-size: 14px; }
+  .navlinks.isOpen { align-items: stretch; }
+  .navMore { grid-column: 1 / -1; }
+  .navMore .navServices { position: static; width: 100%; border: 0; padding: 0; }
+  .hero.overviewHero { height: 320px; max-height: none; min-height: 0; }
+  .accountForm,.screen,.cards { min-width: 0; }
+}
 .achievementClose {
   border: 0;
   background: transparent;

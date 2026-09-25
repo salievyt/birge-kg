@@ -9,6 +9,8 @@ import { ItemCards } from "./ItemCards";
 import { SkeletonCards } from "./Skeleton";
 
 interface FacultyScreenProps {
+  faculties?: string[];
+  onSelect(name: string): void;
   faculty?: FacultyDto;
   loading: boolean;
   onOpenDetail(kind: "project" | "club", id: number): void;
@@ -18,7 +20,7 @@ interface FacultyScreenProps {
 
 type Tab = "students" | "projects" | "clubs" | "events";
 
-export function FacultyScreen({ faculty, loading, onOpenDetail, onOpenEvent, onOpenPerson }: FacultyScreenProps) {
+export function FacultyScreen({ faculty, faculties, onSelect, loading, onOpenDetail, onOpenEvent, onOpenPerson }: FacultyScreenProps) {
   const [tab, setTab] = useState<Tab>("students");
   const tabs: Array<{ key: Tab; label: string; count: number }> = useMemo(
     () => [
@@ -31,7 +33,7 @@ export function FacultyScreen({ faculty, loading, onOpenDetail, onOpenEvent, onO
   );
 
   if (loading && !faculty) return <section className="screen"><h1>Факультет</h1><SkeletonCards count={4} /></section>;
-  if (!faculty) return <section className="screen"><h1>Факультет</h1><p className="emptyState">Выберите факультет из раздела «Путеводитель» или каталога людей.</p></section>;
+  if (!faculty) return <section className="screen"><h1>Факультеты</h1>{faculties?.length ? <div className="peopleGrid">{faculties.map(name => <button className="personRow" key={name} onClick={() => onSelect(name)}><GraduationCap size={20} />{name}</button>)}</div> : <p className="emptyState">Пока нет заполненных факультетов. <a href="#profile">Добавить факультет в профиль</a></p>}</section>;
 
   return (
     <section className="screen">
@@ -58,7 +60,7 @@ export function FacultyScreen({ faculty, loading, onOpenDetail, onOpenEvent, onO
       {tab === "students" && (
         <div className="peopleGrid">
           {faculty.students.map(student => (
-            <button className="personRow" key={student.user.id} onClick={() => onOpenPerson(student.user.id)}>
+            <button className="personRow" key={student.id} onClick={() => onOpenPerson(student.id)}>
               <GraduationCap size={18} />
               <span>
                 <strong>{[student.user.first_name, student.user.last_name].filter(Boolean).join(" ") || student.user.username}</strong>
