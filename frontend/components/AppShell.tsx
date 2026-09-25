@@ -15,7 +15,6 @@ import type {
   FeedDto,
   ItemDto,
   MatchingDto,
-  NotificationDto,
   PersonDto,
   ResourceKey,
   ResourceKind,
@@ -85,8 +84,6 @@ export function AppShell() {
     submitAdmission,
     awardAchievement,
     moderationDecide,
-    markNotificationRead,
-    markAllNotificationsRead,
     exportData,
   } = useAppController();
   const { screen, menuOpen, account, csrf, ready, data, dashboard, views, params, loading, busy, theme, toasts, canModerate } = state;

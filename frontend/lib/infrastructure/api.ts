@@ -240,11 +240,8 @@ export const appApi = {
     return request("/api/moderation/decide/", { method: "POST", csrf, body: { resource, resource_id: resourceId, action } });
   },
 
-  notifications(kind?: string, signal?: AbortSignal): Promise<NotificationDto[]> {
-    const query = kind ? `?kind=${kind}` : "";
-    return request<ListResponse | NotificationDto[]>(`/api/notifications/${query}`, { signal }).then(
-      result => unwrapList(result) as NotificationDto[],
-    );
+  notifications(page: number, kind: string, signal?: AbortSignal): Promise<{count: number; next: string | null; results: NotificationDto[]}> {
+    return request(`/api/notifications/?page=${page}&kind=${encodeURIComponent(kind)}`, { signal });
   },
 
   notificationRead(id: number, csrf: string): Promise<{ ok: boolean }> {

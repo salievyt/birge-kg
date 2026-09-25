@@ -66,8 +66,6 @@ export interface AppController {
   submitAdmission(data: AdmissionInput): Promise<boolean>;
   awardAchievement(userId: number, title: string, icon: string): Promise<boolean>;
   moderationDecide(resource: string, resourceId: number, action: "approve" | "reject"): Promise<boolean>;
-  markNotificationRead(id: number): Promise<void>;
-  markAllNotificationsRead(): Promise<void>;
   exportData(): Promise<void>;
 }
 
@@ -195,9 +193,6 @@ export function useAppController(): AppController {
         } else if (screen === "cabinet") {
           const cabinetPayload = await appApi.cabinet(controller.signal);
           setViews(v => ({ ...v, cabinet: cabinetPayload }));
-        } else if (screen === "notifications") {
-          const payload = await appApi.notifications(undefined, controller.signal);
-          setViews(v => ({ ...v, notifications: payload }));
         } else if (screen === "favorites") {
           const payload = await appApi.favorites(controller.signal);
           setViews(v => ({ ...v, favorites: payload }));
@@ -578,25 +573,6 @@ export function useAppController(): AppController {
     [csrf, notify, resetReload],
   );
 
-  const markNotificationRead = useCallback(
-    (id: number) =>
-      run("Не удалось отметить прочитанным.", async () => {
-        await appApi.notificationRead(id, csrf);
-        resetReload();
-      }),
-    [csrf, resetReload],
-  );
-
-  const markAllNotificationsRead = useCallback(
-    () =>
-      run("Не удалось обновить уведомления.", async () => {
-        const result = await appApi.notificationReadAll(csrf);
-        notify("success", `Отмечено прочитанными: ${result.updated}.`);
-        resetReload();
-      }),
-    [csrf, notify, resetReload],
-  );
-
   const exportData = useCallback(
     () =>
       run("Не удалось выгрузить данные.", async () => {
@@ -660,8 +636,6 @@ export function useAppController(): AppController {
     submitAdmission,
     awardAchievement,
     moderationDecide,
-    markNotificationRead,
-    markAllNotificationsRead,
     exportData,
   };
 }

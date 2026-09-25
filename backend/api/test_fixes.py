@@ -194,6 +194,36 @@ class NotificationTests(AuthTestCase):
         self.register('notification-reader')
         self.user = User.objects.get(username='notification-reader')
 
+    def test_pages_and_server_filter_include_older_records(self):
+        from core.models import Notification
+        Notification.objects.create(user=self.user, title='Older event', kind='event')
+        Notification.objects.bulk_create([Notification(user=self.user, title=f'Update {i}', kind='general') for i in range(25)])
+        first = self.client.get('/api/notifications/').json()
+        second = self.client.get('/api/notifications/?page=2').json()
+        self.assertEqual(first['count'], 26)
+        self.assertEqual(len(first['results']), 20)
+        self.assertEqual(len(second['results']), 6)
+        self.assertFalse(set(item['id'] for item in first['results']) & set(item['id'] for item in second['results']))
+        filtered = self.client.get('/api/notifications/?kind=event').json()
+        self.assertEqual(filtered['count'], 1)
+        self.assertEqual(filtered['results'][0]['title'], 'Older event')
+
+    def test_read_actions_cannot_access_other_users(self):
+        from core.models import Notification
+        other = User.objects.create_user('other-reader')
+        private = Notification.objects.create(user=other, title='Private')
+        own = Notification.objects.create(user=self.user, title='Own')
+        self.assertEqual(self.client.get(f'/api/notifications/{private.id}/').status_code, 404)
+        self.assertEqual(self.post(f'/api/notifications/{private.id}/read/', {}).status_code, 404)
+        self.assertEqual(self.post('/api/notifications/read-all/', {}).json()['updated'], 1)
+        own.refresh_from_db()
+        private.refresh_from_db()
+        self.assertTrue(own.is_read)
+        self.assertFalse(private.is_read)
+        self.assertEqual(Client().get('/api/notifications/').json()['count'], 0)
+
+
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
 class PasswordTests(AuthTestCase):
     def test_email_reset_changes_password_and_cannot_be_replayed(self):
         user = User.objects.create_user('reset-user', email='reset@example.com', password='Old-strong-547!')

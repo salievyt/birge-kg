@@ -284,7 +284,7 @@ class NotificationRepository:
         items = Notification.objects.filter(user=user)
         if kind:
             items = items.filter(kind=kind)
-        return items.order_by("-created_at")
+        return items.order_by("-created_at", "-id")
 
     @staticmethod
     def create(user, title: str, body: str = "", kind: str = "general") -> Notification:
