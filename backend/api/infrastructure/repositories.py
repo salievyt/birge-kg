@@ -185,11 +185,11 @@ class IdeaRepository:
 class ClubRepository:
     @staticmethod
     def all() -> QuerySet[Club]:
-        return Club.objects.select_related("lead").prefetch_related("members").order_by("name")
+        return Club.objects.filter(is_moderated=True).select_related("lead").prefetch_related("members").order_by("name", "id")
 
     @staticmethod
     def by_id(club_id: int) -> Club | None:
-        return Club.objects.select_related("lead").filter(id=club_id).first()
+        return Club.objects.select_related("lead").filter(id=club_id, is_moderated=True).first()
 
     @staticmethod
     def for_user(user) -> QuerySet[Club]:
@@ -197,20 +197,20 @@ class ClubRepository:
 
     @staticmethod
     def of_faculty(faculty: str) -> QuerySet[Club]:
-        return Club.objects.select_related("lead").filter(lead__profile__faculty__iexact=faculty)
+        return Club.objects.select_related("lead").filter(lead__profile__faculty__iexact=faculty, is_moderated=True)
 
     @staticmethod
     def unmoderated() -> QuerySet[Club]:
-        return Club.objects.filter(is_moderated=False)
+        return Club.objects.filter(is_moderated=False, is_rejected=False)
 
     @staticmethod
     def count() -> int:
-        return Club.objects.count()
+        return Club.objects.filter(is_moderated=True).count()
 
     @staticmethod
     def monthly(since):
         return (
-            Club.objects.filter(created_at__gte=since)
+            Club.objects.filter(created_at__gte=since, is_moderated=True)
             .annotate(month=TruncMonth("created_at"))
             .values("month")
             .annotate(count=Count("id"))

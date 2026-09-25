@@ -52,11 +52,13 @@ export function DetailScreen({
 
   const subject = item.title || item.name || "Запись";
   const roleWord = kind === "idea" ? "автор" : kind === "project" ? "руководитель" : "лидер";
+  const hiddenClub = kind === "club" && item.is_moderated === false;
 
   return (
     <section className="screen">
       <p className="eyebrow">BIRGE / {kindLabel(kind).toUpperCase()}</p>
       <h1>{subject}</h1>
+      {hiddenClub && <p role="status" className="emptyState">{item.is_rejected ? "Клуб отклонён. Измените описание и отправьте его на повторную модерацию." : "Клуб на модерации. До одобрения он не виден другим студентам."}</p>}
 
       <div className="detailLayout">
         <article className="detailMain">
@@ -88,7 +90,7 @@ export function DetailScreen({
             ) : (
               <button className="primaryButton" onClick={onJoin} disabled={!isAuthenticated}><LogIn size={16} /> Присоединиться</button>
             )}
-            <button className="secondaryButton" onClick={onToggleFavorite} disabled={!isAuthenticated}>
+            <button className="secondaryButton" onClick={onToggleFavorite} disabled={!isAuthenticated || busy || hiddenClub}>
               <Bookmark size={16} /> {bundle.is_favorited ? "В избранном" : "В избранное"}
             </button>
           </div>
@@ -109,7 +111,7 @@ export function DetailScreen({
 
       <section className="commentsSection">
         <h2>Обсуждение ({comments.length})</h2>
-        {isAuthenticated && (
+        {isAuthenticated && !hiddenClub && (
           <form className="commentForm" onSubmit={submitComment}>
             <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Ваш комментарий…" aria-label="Текст комментария" required />
             <button className="primaryButton" ><Send size={16} /> Отправить</button>

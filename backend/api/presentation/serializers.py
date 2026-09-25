@@ -61,7 +61,8 @@ class ClubSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Club
-        fields = ["id", "name", "category", "description", "lead", "members_count", "is_moderated", "image"]
+        fields = ["id", "name", "category", "description", "lead", "members_count", "is_moderated", "is_rejected", "image"]
+        read_only_fields = ["is_moderated", "is_rejected"]
 
 
 class EventSerializer(serializers.ModelSerializer):

@@ -29,7 +29,7 @@ export function ItemCards({ items, kind, favorited, onOpen, onFavorite }: ItemCa
             <div className="cardTop">
               <span>{itemMeta(item)}</span>
               <span>
-                {item.status_label ||
+                {(itemKind === "club" && item.is_moderated === false ? item.is_rejected ? "Отклонён" : "На модерации" : item.status_label) ||
                   (item.starts_at ? new Date(item.starts_at).toLocaleDateString("ru-RU") : "") ||
                   (item.votes !== undefined ? `★ ${item.votes}` : "")}
               </span>

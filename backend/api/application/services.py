@@ -189,8 +189,13 @@ class ModerationService:
             "admissions": self.admission_repo.pending(),
         }
 
+    @transaction.atomic
     def decide(self, resource: str, resource_id: int, action: str, user):
         """Decide on a pending entity: admissions, ideas or clubs."""
+        if not self.can_moderate(user):
+            raise ValidationError("Доступ только для модераторов и администраторов.")
+        if action not in ("approve", "reject"):
+            raise ValidationError("Недопустимое действие.")
         if resource == "admissions":
             admission = self.admission_repo.by_id(resource_id)
             if admission is None or admission.status != "new":
@@ -209,11 +214,13 @@ class ModerationService:
             idea.save(update_fields=["status"])
             return idea
         if resource == "clubs":
-            club = self.club_repo.by_id(resource_id)
+            club = Club.objects.filter(id=resource_id, is_moderated=False, is_rejected=False).first()
             if club is None:
                 raise ValidationError("Клуб не найден.")
             club.is_moderated = action == "approve"
-            club.save(update_fields=["is_moderated"])
+            club.is_rejected = action == "reject"
+            club.save(update_fields=["is_moderated", "is_rejected"])
+            NotificationRepository.create(club.lead, "Клуб рассмотрен", f"«{club.name}»: " + ("одобрен." if action == "approve" else "отклонён. Вы можете внести правки и отправить клуб повторно."), "moderation")
             return club
         raise ValidationError("Неизвестный ресурс для модерации.")
 
@@ -246,6 +253,11 @@ class ItemService:
 
     def detail(self, resource: str, resource_id: int, user):
         item = self._resolve(resource, resource_id)
+        if item is None and resource == "club" and user.is_authenticated:
+            candidates = Club.objects.filter(pk=resource_id)
+            if not AccountService.is_moderator(user):
+                candidates = candidates.filter(lead=user)
+            item = candidates.first()
         if item is None:
             return None
         return {
@@ -262,10 +274,10 @@ class ItemService:
         if resource == "project" and isinstance(item, Project):
             return self.project_repo.memberships(item)
         if resource == "club" and isinstance(item, Club):
-            return [
+            return [{"user": item.lead, "role": "руководитель", "accepted": True}, *[
                 {"user": member, "role": "участник", "accepted": True}
-                for member in item.members.all().select_related("profile__user")
-            ]
+                for member in item.members.exclude(pk=item.lead_id).select_related("profile__user")
+            ]]
         return []
 
     def _is_member(self, resource: str, item, user) -> bool:

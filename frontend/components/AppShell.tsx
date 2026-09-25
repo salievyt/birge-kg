@@ -173,6 +173,7 @@ export function AppShell() {
           ))}
           {screen === "admin" && (
             <AdminScreen
+              onOpenDetail={openDetail}
               csrf={csrf}
               canModerate={canModerate}
               busy={busy}

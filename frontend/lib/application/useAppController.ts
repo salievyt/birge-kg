@@ -365,7 +365,7 @@ export function useAppController(): AppController {
       try {
         await catalogApi.create(resource, csrf, body);
         resetReload();
-        notify("success", "Добавлено и доступно в каталоге.");
+        notify("success", resource === "clubs" ? "Клуб отправлен на модерацию." : "Публикация создана.");
         return true;
       } catch (e) {
         notify("error", messageFor(e, "Не удалось создать."));

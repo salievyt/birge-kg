@@ -86,7 +86,7 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
             {
                 "profile": ProfileSerializer(profile).data,
                 "projects": ProjectSerializer(ProjectRepository.for_user(user), many=True).data,
-                "clubs": ClubSerializer(ClubRepository.for_user(user), many=True).data,
+                "clubs": ClubSerializer(ClubRepository.for_user(user).filter(is_moderated=True), many=True).data,
                 "events": EventSerializer(EventRepository.for_user(user), many=True).data,
             }
         )
@@ -132,6 +132,13 @@ class IdeaViewSet(OwnedContentViewSet):
     ordering_fields = ["created_at", "votes"]
     search_fields = ["title", "description", "official_response"]
 
+    @transaction.atomic
+    def perform_update(self, serializer):
+        previous = (serializer.instance.status, serializer.instance.official_response)
+        idea = serializer.save()
+        if previous != (idea.status, idea.official_response):
+            NotificationRepository.create(idea.author, "Ответ на вашу идею", f"«{idea.title}»: {idea.get_status_display()}. {idea.official_response[:200]}", "moderation")
+
     def get_queryset(self):
         return IdeaRepository.top()
 
@@ -172,7 +179,15 @@ class ClubViewSet(OwnedContentViewSet):
     search_fields = ["name", "category", "description"]
 
     def get_queryset(self):
+        from core.models import Club
+        if AccountService.is_moderator(self.request.user):
+            return Club.objects.all().order_by("name", "id")
+        if self.action in ("update", "partial_update", "destroy"):
+            return Club.objects.filter(lead=self.request.user)
         return ClubRepository.all()
+
+    def perform_update(self, serializer):
+        serializer.save(is_moderated=False, is_rejected=False)
 
     def retrieve(self, request, *args, **kwargs):
         return _respond_detail(request, "club", kwargs["pk"])

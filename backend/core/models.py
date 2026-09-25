@@ -81,6 +81,7 @@ class Club(TimeStampedModel):
     lead = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="led_clubs")
     members = models.ManyToManyField(User, related_name="clubs", blank=True)
     is_moderated = models.BooleanField(default=False)
+    is_rejected = models.BooleanField(default=False)
     image = models.URLField(blank=True)
 
     def __str__(self):
