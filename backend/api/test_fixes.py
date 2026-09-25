@@ -82,6 +82,12 @@ class ContentTests(AuthTestCase):
         self.assertFalse(club.is_moderated)
         self.assertEqual(Client().get(url).status_code, 404)
 
+    def test_upload_rejects_fake_image_and_svg(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        for name in ['fake.png', 'script.svg']:
+            response = self.client.post('/api/upload/', {'file': SimpleUploadedFile(name, b'not an image')}, HTTP_X_CSRFTOKEN=self.csrf)
+            self.assertEqual(response.status_code, 400)
+
 class NotificationTests(AuthTestCase):
     def setUp(self):
         super().setUp()

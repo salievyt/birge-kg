@@ -3,4 +3,5 @@ djangorestframework>=3.17,<3.18
 django-cors-headers>=4.9,<4.10
 psycopg[binary]>=3.2
 python-dotenv>=1.0
+Pillow>=11.0
 django-jazzmin>=3.0,<3.1

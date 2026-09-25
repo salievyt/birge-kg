@@ -567,25 +567,46 @@ def export_data(request):
     )
 
 
-ALLOWED_MEDIA_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"}
+ALLOWED_MEDIA_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
 
 
 @csrf_protect
 @require_http_methods(["POST"])
 def upload(request):
-    if not AccountService.is_moderator(request.user):
-        return JsonResponse({"error": "Доступ только для модераторов и администраторов."}, status=403)
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Войдите в аккаунт."}, status=401)
     uploaded = request.FILES.get("file")
     if uploaded is None:
         return JsonResponse({"error": "Файл не передан."}, status=400)
     extension = os.path.splitext(uploaded.name or "")[1].lower()
     if extension not in ALLOWED_MEDIA_EXTENSIONS:
         return JsonResponse({"error": "Недопустимый формат файла."}, status=400)
-    filename = uuid.uuid4().hex + extension
-    destination = Path(settings.MEDIA_ROOT) / filename
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    with destination.open("wb") as out:
-        for chunk in uploaded.chunks():
-            out.write(chunk)
-    url = request.build_absolute_uri(f"{settings.MEDIA_URL}{filename}")
+    if uploaded.size > 3 * 1024 * 1024:
+        return JsonResponse({"error": "Максимальный размер изображения — 3 МБ."}, status=400)
+    from io import BytesIO
+    from PIL import Image, UnidentifiedImageError
+    from core.models import MediaAsset
+    data = uploaded.read()
+    try:
+        with Image.open(BytesIO(data)) as picture:
+            if picture.width * picture.height > 20_000_000:
+                raise ValueError()
+            content_type = {"PNG": "image/png", "JPEG": "image/jpeg", "GIF": "image/gif", "WEBP": "image/webp"}.get(picture.format)
+            picture.verify()
+            if not content_type:
+                raise ValueError()
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+        return JsonResponse({"error": "Не удалось прочитать изображение."}, status=400)
+    asset = MediaAsset.objects.create(owner=request.user, data=data, content_type=content_type)
+    url = request.build_absolute_uri(f"/api/media/{asset.id}/")
     return JsonResponse({"url": url, "csrf": get_token(request)})
+
+
+@require_http_methods(["GET"])
+def media_asset(request, asset_id):
+    from core.models import MediaAsset
+    from django.shortcuts import get_object_or_404
+    asset = get_object_or_404(MediaAsset, pk=asset_id)
+    return HttpResponse(bytes(asset.data), content_type=asset.content_type, headers={
+        "Cache-Control": "public, max-age=31536000, immutable", "X-Content-Type-Options": "nosniff",
+    })

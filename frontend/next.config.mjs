@@ -7,8 +7,8 @@ const nextConfig = {
   async rewrites() {
     const upstream = [
       { source: "/api/:path*", destination: `${backendOrigin}/api/:path*/` },
-      { source: "/static/:path*", destination: `${backendOrigin}/static/:path*/` },
-      { source: "/media/:path*", destination: `${backendOrigin}/media/:path*/` },
+      { source: "/static/:path*", destination: `${backendOrigin}/static/:path*` },
+      { source: "/media/:path*", destination: `${backendOrigin}/media/:path*` },
     ];
     return upstream;
   },

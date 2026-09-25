@@ -71,9 +71,17 @@ class AccountTests(AuthTestCase):
         csrf = uploader.get('/api/auth/session/').json()['csrf']
         login = uploader.post('/api/auth/login/', {'username': 'moderator_upload', 'password': 'Strong-8174!'}, content_type='application/json', HTTP_X_CSRFTOKEN=csrf)
         csrf = login.json()['csrf']
-        response = uploader.post('/api/upload/', {'file': SimpleUploadedFile('logo.png', b'fake-png')}, HTTP_X_CSRFTOKEN=csrf)
+        from io import BytesIO
+        from PIL import Image
+        image = BytesIO()
+        Image.new('RGB', (2, 2)).save(image, format='PNG')
+        response = uploader.post('/api/upload/', {'file': SimpleUploadedFile('logo.png', image.getvalue())}, HTTP_X_CSRFTOKEN=csrf)
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.json()['url'].startswith('http://testserver/media/'))
+        self.assertTrue(response.json()['url'].startswith('http://testserver/api/media/'))
+        from urllib.parse import urlparse
+        fetched = Client().get(urlparse(response.json()['url']).path)
+        self.assertEqual(fetched.content, image.getvalue())
+        self.assertEqual(fetched['Content-Type'], 'image/png')
 
 
 class FeatureTests(AuthTestCase):

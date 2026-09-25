@@ -25,6 +25,7 @@ from .views import (
     ProfileViewSet,
     ProjectViewSet,
     upload,
+    media_asset,
 )
 
 router = DefaultRouter()
@@ -39,6 +40,7 @@ router.register("announcements", AnnouncementViewSet, basename="announcement")
 urlpatterns = [
     path("auth/password-reset/", passwords.reset_request),
     path("auth/password-reset-confirm/", passwords.reset_confirm),
+    path("media/<uuid:asset_id>/", media_asset),
     path("auth/session/", auth.session),
     path("auth/login/", auth.sign_in),
     path("auth/register/", auth.register),
