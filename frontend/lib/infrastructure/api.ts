@@ -104,6 +104,13 @@ function unwrapList(result: ListResponse | ItemDto[] | NotificationDto[]): ItemD
 }
 
 export const catalogApi = {
+  update(resource: ResourceKey, id: number, csrf: string, body: Record<string, unknown>): Promise<ItemDto> {
+    return request(`/api/${endpointFor(resource)}/${id}/`, { method: "PATCH", csrf, body });
+  },
+  page(resource: ResourceKey, page: number, search: string, signal?: AbortSignal, filters: Record<string, string> = {}): Promise<{ count: number; next: string | null; results: ItemDto[] }> {
+    const query = new URLSearchParams({...filters, ordering: "-created_at", page: String(page), search});
+    return request(`/api/${endpointFor(resource)}/?${query}`, { signal });
+  },
   list(resource: ResourceKey, signal?: AbortSignal): Promise<ItemDto[]> {
     return request<ListResponse | ItemDto[]>(`/api/${endpointFor(resource)}/?ordering=-created_at`, { signal }).then(unwrapList);
   },

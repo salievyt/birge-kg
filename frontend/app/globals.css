@@ -791,3 +791,46 @@ p { line-height: 1.5; }
   .achievementPopup { top: auto; bottom: 20px; right: 12px; }
   .errorZero.gameTarget { width: 56px; height: 56px; }
 }
+
+.catalogFilters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 16px;
+  align-items: end;
+  margin: 20px 0 28px;
+}
+.catalogFilters label { display: grid; gap: 8px; min-width: 0; font-size: 14px; }
+.catalogFilters input:not([type="checkbox"]), .catalogFilters select {
+  width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--ink);
+  font: inherit;
+}
+.catalogFilters .availabilityFilter { display: flex; align-items: center; min-height: 44px; }
+.catalogFilters input[type="checkbox"] { width: 18px; height: 18px; }
+
+.eventReport, .eventReportForm { margin: 28px 0; }
+.eventReportText { white-space: pre-wrap; overflow-wrap: anywhere; }
+.eventReportGallery {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px; margin: 20px 0;
+}
+.eventReportGallery figure { position: relative; margin: 0; }
+.eventReportGallery a { display: block; min-width: 0; }
+.eventReportGallery img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: var(--card); border-radius: 6px; }
+.eventReportGallery .iconButton { position: absolute; top: 8px; right: 8px; background: var(--card); }
+
+.teamChat { margin: 24px 0; }
+.chatMessages {
+  list-style: none; padding: 16px 0; margin: 12px 0;
+  min-height: 100px; max-height: 440px; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.chatMessage { flex: 0 0 auto; max-width: 90%; overflow-wrap: anywhere; align-self: flex-start; background: var(--card); padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; }
+.chatMessage.ownMessage { align-self: flex-end; border-left: 3px solid var(--teal); }
+.chatMessage div { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; }
+.chatMessage time { font-size: 12px; color: var(--muted); }
+.chatMessage p { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chatComposer { display: grid; gap: 12px; }
+.chatComposer label { display: grid; gap: 8px; }
+.chatComposer textarea { box-sizing: border-box; width: 100%; min-height: 88px; resize: vertical; padding: 12px; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+.chatComposer button { justify-self: end; }

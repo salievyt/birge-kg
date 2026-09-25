@@ -46,6 +46,7 @@ export interface AppController {
   register(input: AuthenticationInput): Promise<void>;
   saveProfile(payload: ProfilePayload): Promise<void>;
   createEntity(resource: ResourceKey, body: Record<string, unknown>): Promise<boolean>;
+  updateEntity(resource: ResourceKey, id: number, body: Record<string, unknown>): Promise<boolean>;
   logout(): Promise<void>;
   openDetail(kind: ResourceKind, id: number): void;
   openPerson(id: number): void;
@@ -377,6 +378,21 @@ export function useAppController(): AppController {
     [csrf, notify, resetReload],
   );
 
+  const updateEntity = useCallback(async (resource: ResourceKey, id: number, body: Record<string, unknown>) => {
+    setBusy(true);
+    try {
+      await catalogApi.update(resource, id, csrf, body);
+      resetReload();
+      notify("success", resource === "clubs" ? "Изменения отправлены на модерацию." : "Изменения сохранены.");
+      return true;
+    } catch (error) {
+      notify("error", messageFor(error, "Не удалось сохранить изменения."));
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }, [csrf, notify, resetReload]);
+
   const logout = useCallback(async () => {
     setBusy(true);
     try {
@@ -614,6 +630,7 @@ export function useAppController(): AppController {
     register,
     saveProfile,
     createEntity,
+    updateEntity,
     logout,
     openDetail,
     openPerson,

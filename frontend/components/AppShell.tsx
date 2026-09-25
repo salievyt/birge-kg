@@ -66,6 +66,7 @@ export function AppShell() {
     saveProfile,
     logout,
     createEntity,
+    updateEntity,
     openDetail,
     openPerson,
     openEvent,
@@ -152,8 +153,10 @@ export function AppShell() {
             <CatalogScreen
               title={titleFor(screen) ?? ""}
               resource={screen as ResourceKey}
-              loading={loading}
-              items={data[screen as ResourceKey] ?? []}
+              authenticated={Boolean(account)}
+              csrf={csrf}
+              busy={busy}
+              onCreate={createEntity}
               onItemOpen={(item) => {
                 if (screen === "people") openPerson(item.user?.id ?? 0);
                 else if (screen === "events") openEvent(item.id);
@@ -166,6 +169,7 @@ export function AppShell() {
           {(screen === "login" || screen === "register") && (
             <AuthScreen mode={screen} csrfReady={Boolean(csrf)} busy={busy} onSubmit={screen === "register" ? register : login} />
           )}
+          {(screen === "forgot-password" || screen === "reset-password") && <PasswordScreen key={screen} csrf={csrf} confirm={screen === "reset-password"} />}
           {screen === "profile" && (account ? (
             <ProfileScreen account={account} busy={busy} onSave={saveProfile} onLogout={logout} />
           ) : (
@@ -198,10 +202,8 @@ export function AppShell() {
           )}
           {screen === "notifications" && (
             <NotificationsScreen
-              notifications={views.notifications as NotificationDto[] | undefined}
-              loading={loading}
-              onMarkRead={markNotificationRead}
-              onMarkAllRead={markAllNotificationsRead}
+              key={account?.profile.user.id}
+              csrf={csrf}
             />
           )}
           {screen === "favorites" && (
@@ -262,6 +264,9 @@ export function AppShell() {
           )}
           {screen === "detail" && (
             <DetailScreen
+              csrf={csrf}
+              onSave={updateEntity}
+              busy={busy}
               kind={detailKind}
               bundle={views.detail as DetailBundle | undefined}
               loading={loading}
@@ -276,6 +281,11 @@ export function AppShell() {
           )}
           {screen === "event" && (
             <EventScreen
+              key={params.id}
+              csrf={csrf}
+              busy={busy}
+              canModerate={canModerate}
+              onSave={updateEntity}
               event={views.event as DetailBundle | undefined}
               loading={loading}
               isAuthenticated={Boolean(account)}

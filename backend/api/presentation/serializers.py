@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.utils import timezone
 from rest_framework import serializers
 
 from core.models import (
@@ -68,10 +69,25 @@ class ClubSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     organizer = UserSerializer(read_only=True)
     attendees_count = serializers.IntegerField(source="attendees.count", read_only=True)
+    report = serializers.CharField(max_length=10000, allow_blank=True, required=False)
+    report_photos = serializers.ListField(child=serializers.URLField(max_length=2000), max_length=12, required=False)
+
+    def validate(self, attrs):
+        report = attrs.get("report", getattr(self.instance, "report", ""))
+        photos = attrs.get("report_photos", getattr(self.instance, "report_photos", []))
+        url = attrs.get("report_url", getattr(self.instance, "report_url", ""))
+        start = attrs.get("starts_at", getattr(self.instance, "starts_at", None))
+        if (report or photos or url) and start and start > timezone.now():
+            raise serializers.ValidationError({"report": "Отчёт доступен после начала мероприятия."})
+        if any(not photo.startswith(("https://", "http://")) for photo in photos):
+            raise serializers.ValidationError({"report_photos": "Фотографии должны иметь HTTP или HTTPS адрес."})
+        if url and not url.startswith(("https://", "http://")):
+            raise serializers.ValidationError({"report_url": "Укажите HTTP или HTTPS адрес."})
+        return attrs
 
     class Meta:
         model = Event
-        fields = ["id", "title", "description", "organizer", "starts_at", "location", "capacity", "attendees_count", "report_url"]
+        fields = ["id", "title", "description", "organizer", "starts_at", "location", "capacity", "attendees_count", "report_url", "report", "report_photos"]
 
 
 class NotificationSerializer(serializers.ModelSerializer):

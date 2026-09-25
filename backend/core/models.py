@@ -99,6 +99,8 @@ class Event(TimeStampedModel):
     capacity = models.PositiveIntegerField(default=50)
     attendees = models.ManyToManyField(User, related_name="registered_events", blank=True)
     report_url = models.URLField(blank=True)
+    report = models.TextField(blank=True)
+    report_photos = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return self.title
