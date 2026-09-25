@@ -195,6 +195,8 @@ class AdmissionRequest(TimeStampedModel):
 class EventReminder(TimeStampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="event_reminders")
     event = models.ForeignKey("Event", on_delete=models.CASCADE, related_name="reminders")
+    enabled = models.BooleanField(default=True)
+    sent_for_start_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ("user", "event")

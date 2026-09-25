@@ -13,6 +13,7 @@ from core.models import (
     Club,
     Comment,
     Event,
+    EventReminder,
     Idea,
     Project,
     ProjectMembership,
@@ -413,17 +414,24 @@ class EventService:
             )
         return event
 
+    @transaction.atomic
     def cancel(self, event_id: int, user):
         event = Event.objects.select_for_update().filter(pk=event_id).first()
         if event is None:
             raise ValidationError("Событие не найдено.")
         event.attendees.remove(user)
+        EventReminder.objects.filter(event=event, user=user).update(enabled=False)
         return event
 
+    @transaction.atomic
     def toggle_reminder(self, event_id: int, user):
         event = Event.objects.select_for_update().filter(pk=event_id).first()
         if event is None:
             raise ValidationError("Событие не найдено.")
+        if event.starts_at <= timezone.now():
+            raise ValidationError("Мероприятие уже началось.")
+        if not event.attendees.filter(pk=user.pk).exists():
+            raise ValidationError("Сначала зарегистрируйтесь на мероприятие.")
         return EventReminderRepository.toggle(user, event)
 
     def calendar(self, year: int, month: int):

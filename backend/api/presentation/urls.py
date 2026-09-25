@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from . import auth
 from . import passwords
+from . import jobs
 from .views import (
     achievements,
     admissions,
@@ -38,6 +39,7 @@ router.register("notifications", NotificationViewSet, basename="notification")
 router.register("announcements", AnnouncementViewSet, basename="announcement")
 
 urlpatterns = [
+    path("jobs/event-reminders/", jobs.event_reminders),
     path("auth/password-reset/", passwords.reset_request),
     path("auth/password-reset-confirm/", passwords.reset_confirm),
     path("media/<uuid:asset_id>/", media_asset),

@@ -16,6 +16,7 @@ def _csv(name: str) -> list[str]:
 
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-birge-secret-key")
+REMINDER_JOB_SECRET = os.environ.get("REMINDER_JOB_SECRET", "")
 
 # Локальная разработка по умолчанию включает DEBUG; на Vercel выставляйте DJANGO_DEBUG=0.
 DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"

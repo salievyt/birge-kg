@@ -387,13 +387,12 @@ class AdmissionRepository:
 class EventReminderRepository:
     @staticmethod
     def has(user, event: Event) -> bool:
-        return EventReminder.objects.filter(user=user, event=event).exists()
+        return EventReminder.objects.filter(user=user, event=event, enabled=True).exists()
 
     @staticmethod
     def toggle(user, event: Event) -> bool:
-        reminder = EventReminder.objects.filter(user=user, event=event).first()
-        if reminder:
-            reminder.delete()
-            return False
-        EventReminder.objects.create(user=user, event=event)
-        return True
+        reminder, created = EventReminder.objects.get_or_create(user=user, event=event)
+        if not created:
+            reminder.enabled = not reminder.enabled
+            reminder.save(update_fields=["enabled"])
+        return reminder.enabled
