@@ -213,6 +213,7 @@ class ModerationService:
                 raise ValidationError("Идея не найдена или уже рассмотрена.")
             idea.status = "approved" if action == "approve" else "declined"
             idea.save(update_fields=["status"])
+            NotificationRepository.create(idea.author, "Идея рассмотрена", f"«{idea.title}»: {idea.get_status_display()}.", "moderation")
             return idea
         if resource == "clubs":
             club = Club.objects.filter(id=resource_id, is_moderated=False, is_rejected=False).first()

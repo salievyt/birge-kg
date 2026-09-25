@@ -82,6 +82,31 @@ class ContentTests(AuthTestCase):
         self.assertFalse(club.is_moderated)
         self.assertEqual(Client().get(url).status_code, 404)
 
+    def test_official_reply_requires_moderator_and_notifies_author(self):
+        from core.models import Notification
+        from django.contrib.auth.models import Group
+        idea = Idea.objects.create(author=self.user, title='Student proposal', description='Text')
+        url = f'/api/ideas/{idea.id}/'
+        reply = {'status': 'active', 'official_response': 'Работы начнутся в октябре.'}
+        response = self.client.patch(url, reply, content_type='application/json', HTTP_X_CSRFTOKEN=self.csrf)
+        self.assertEqual(response.status_code, 200)
+        idea.refresh_from_db()
+        self.assertEqual(idea.status, 'review')
+        self.assertEqual(idea.official_response, '')
+        moderator = User.objects.create_user('idea-moderator')
+        moderator.groups.add(Group.objects.get_or_create(name='Moderators')[0])
+        self.client.force_login(moderator)
+        response = self.client.patch(url, reply, content_type='application/json', HTTP_X_CSRFTOKEN=self.csrf)
+        self.assertEqual(response.status_code, 200)
+        public = Client().get(url).json()['item']
+        self.assertEqual(public['official_response'], reply['official_response'])
+        self.assertEqual(public['status'], 'active')
+        self.assertEqual(Notification.objects.filter(user=self.user, kind='moderation').count(), 1)
+        self.client.patch(url, reply, content_type='application/json', HTTP_X_CSRFTOKEN=self.csrf)
+        self.assertEqual(Notification.objects.filter(user=self.user, kind='moderation').count(), 1)
+        invalid = self.client.patch(url, {'status': 'invented'}, content_type='application/json', HTTP_X_CSRFTOKEN=self.csrf)
+        self.assertEqual(invalid.status_code, 400)
+
     def test_upload_rejects_fake_image_and_svg(self):
         from django.core.files.uploadedfile import SimpleUploadedFile
         for name in ['fake.png', 'script.svg']:

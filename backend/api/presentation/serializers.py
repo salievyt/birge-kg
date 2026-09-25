@@ -51,9 +51,19 @@ class IdeaSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     status_label = serializers.CharField(source="get_status_display", read_only=True)
 
+    def get_fields(self):
+        from ..application.services import AccountService
+        fields = super().get_fields()
+        request = self.context.get("request")
+        if request and AccountService.is_moderator(request.user):
+            fields["status"] = serializers.ChoiceField(choices=Idea.STATUS_CHOICES, required=False)
+            fields["official_response"] = serializers.CharField(max_length=10000, allow_blank=True, required=False)
+        return fields
+
     class Meta:
         model = Idea
         fields = ["id", "title", "description", "author", "status", "status_label", "votes", "official_response", "created_at"]
+        read_only_fields = ["status", "votes", "official_response"]
 
 
 class ClubSerializer(serializers.ModelSerializer):
